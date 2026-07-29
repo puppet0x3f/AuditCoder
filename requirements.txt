@@ -1,0 +1,9 @@
+langgraph
+langchain-core
+langchain-openai
+pydantic>=2.0
+python-dotenv
+json-repair
+numpy
+pytest
+openpyxl
