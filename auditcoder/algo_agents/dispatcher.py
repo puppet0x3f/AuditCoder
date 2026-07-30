@@ -38,10 +38,12 @@ def _build_verifier_input(
 ) -> dict[str, Any]:
     """Construct the VerifierState input dict for a single leaf task."""
     complexity_budget = node.get("complexity_budget", "")
-    complexity_target: dict[str, Any] = (
-        {"budget": complexity_budget} if isinstance(complexity_budget, str)
-        else complexity_budget or {}
-    )
+    if isinstance(complexity_budget, str):
+        complexity_target: dict[str, Any] = {"time": complexity_budget}
+    elif isinstance(complexity_budget, dict):
+        complexity_target = dict(complexity_budget)
+    else:
+        complexity_target = {}
     validation = task_plan_ir.get("validation") or {}
     dispatchable_leaf_ids = {
         candidate.get("id")

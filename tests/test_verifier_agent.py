@@ -19,11 +19,16 @@ from auditcoder.schemas.verification import (
 from auditcoder.verifier_agent.graph import build_verifier_agent_graph
 from auditcoder.verifier_agent.nodes.contract_verifier import contract_verifier
 from auditcoder.verifier_agent.nodes.compile_verifier import compile_verifier
-from auditcoder.verifier_agent.nodes.complexity_verifier import _static_estimate, _fit_power_law
+from auditcoder.verifier_agent.nodes.complexity_verifier import (
+    _fit_power_law,
+    _static_estimate,
+    complexity_verifier,
+)
 from auditcoder.verifier_agent.nodes.bruteforce_verifier import _build_comparison_code
 from auditcoder.verifier_agent.nodes.sample_test_runner import sample_test_runner
 from auditcoder.verifier_agent.nodes.verdict_assembler import verdict_assembler
 from auditcoder.verifier_agent.sandbox import SandboxExecutor
+from auditcoder.verifier_agent.sandbox.executor import _build_container_command
 
 
 # ── Graph compilation ──────────────────────────────────────────
@@ -121,6 +126,105 @@ def test_sandbox_function_call():
     )
     assert result.exit_code == 0
     assert "7" in result.stdout
+
+
+def test_container_command_enforces_isolation_policy(tmp_path):
+    code_directory = tmp_path / "code"
+    code_directory.mkdir()
+    cidfile = tmp_path / "container.cid"
+
+    command = _build_container_command(
+        runtime="/usr/local/bin/docker",
+        image="auditcoder-eval:aaai27",
+        code_directory=code_directory,
+        cidfile=cidfile,
+        memory_limit_mb=512,
+        cpus=2.0,
+        pids_limit=256,
+        tmpfs_size_mb=128,
+    )
+
+    assert "--interactive" in command
+    assert "--network=none" in command
+    assert "--read-only" in command
+    assert "--cap-drop=ALL" in command
+    assert "--security-opt=no-new-privileges" in command
+    assert "--memory=512m" in command
+    assert "--memory-swap=512m" in command
+    assert "--cpus=2" in command
+    assert "--pids-limit=256" in command
+    assert "--tmpfs=/tmp:rw,noexec,nosuid,size=128m" in command
+    assert any(arg.startswith("--user=") and not arg.endswith("=0:0") for arg in command)
+    assert (
+        f"--mount=type=bind,source={code_directory},target=/auditcoder,readonly"
+        in command
+    )
+    assert not any("API_KEY" in arg or "TOKEN" in arg for arg in command)
+    assert command[-2:] == ["auditcoder-eval:aaai27", "/auditcoder/program.py"]
+
+
+def test_container_command_mounts_only_explicit_workspace_writable(tmp_path):
+    code_directory = tmp_path / "code"
+    workspace = tmp_path / "workspace"
+    code_directory.mkdir()
+    workspace.mkdir()
+
+    command = _build_container_command(
+        runtime="podman",
+        image="auditcoder-eval:aaai27",
+        code_directory=code_directory,
+        cidfile=tmp_path / "container.cid",
+        memory_limit_mb=256,
+        cpus=1.0,
+        pids_limit=64,
+        tmpfs_size_mb=64,
+        workspace=workspace,
+        writable_workspace=True,
+    )
+
+    assert (
+        f"--mount=type=bind,source={workspace},target={workspace}"
+        in command
+    )
+    assert f"--workdir={workspace}" in command
+
+
+def test_container_backend_fails_closed_when_runtime_is_missing():
+    executor = SandboxExecutor(
+        backend="container",
+        container_runtime="/definitely-missing/docker",
+    )
+    result = executor.run("print('must not run on host')")
+
+    assert result.exit_code == 127
+    assert "container runtime not found" in result.stderr
+    assert "must not run on host" not in result.stdout
+
+
+def test_complexity_verifier_accepts_legacy_budget_key():
+    result = complexity_verifier(
+        {
+            "compile_report": {"compile_ok": True},
+            "code_snippet": {
+                "source_code": textwrap.dedent(
+                    """\
+                    def solve(nums):
+                        total = 0
+                        for left in nums:
+                            for right in nums:
+                                total += left + right
+                        return total
+                    """
+                )
+            },
+            "task_contract": {"interface": {"function_name": "solve"}},
+            "complexity_target": {"budget": "O(n)"},
+            "bruteforce_report": {"skipped": True},
+        }
+    )
+
+    assert result["complexity_report"]["estimated_complexity"] == "O(n^2)"
+    assert result["complexity_report"]["static_ok"] is False
 
 
 # ── Contract verifier ──────────────────────────────────────────

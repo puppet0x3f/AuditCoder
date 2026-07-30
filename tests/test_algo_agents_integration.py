@@ -31,6 +31,7 @@ from auditcoder.algo_agents.agents import (
     build_dp_agent_graph,
     build_greedy_agent_graph,
 )
+from auditcoder.algo_agents.dispatcher import _build_verifier_input
 from auditcoder.plan_agent.graph import build_plan_agent_graph
 
 # ---------------------------------------------------------------------------
@@ -332,6 +333,54 @@ def test_dispatcher_skips_unknown_agent_type():
     assert code_snippets == {}, f"Unknown agent_type should be skipped, got: {code_snippets}"
     assert verification_reports == {}
     mock_graph.invoke.assert_not_called()
+
+
+def test_string_complexity_budget_reaches_verifier():
+    verifier_input = _build_verifier_input(
+        task_id="S1",
+        agent_type="dp",
+        code_snippet="def solve(nums): return nums",
+        node={
+            "id": "S1",
+            "interface": {},
+            "complexity_budget": "O(n)",
+        },
+        task_plan_ir={
+            "task_nodes": [
+                {
+                    "id": "S1",
+                    "is_leaf": True,
+                    "agent_type": "dp",
+                }
+            ],
+            "validation": {},
+        },
+    )
+
+    assert verifier_input["complexity_target"]["time"] == "O(n)"
+
+
+def test_dict_complexity_budget_is_copied_for_verifier():
+    budget = {"time": "O(n log n)", "space": "O(n)"}
+    verifier_input = _build_verifier_input(
+        task_id="S1",
+        agent_type="dp",
+        code_snippet="def solve(nums): return nums",
+        node={"id": "S1", "interface": {}, "complexity_budget": budget},
+        task_plan_ir={
+            "task_nodes": [
+                {
+                    "id": "S1",
+                    "is_leaf": True,
+                    "agent_type": "dp",
+                }
+            ],
+            "validation": {},
+        },
+    )
+
+    assert verifier_input["complexity_target"] == budget
+    assert verifier_input["complexity_target"] is not budget
 
 
 def test_dispatcher_respects_execution_order():

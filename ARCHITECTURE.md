@@ -159,6 +159,9 @@ problem_raw
 
 - LLM 工厂：`auditcoder/common/llm.py:14` (`get_llm`)
 - JSON 提取：`auditcoder/common/utils.py:12` (`extract_json`)
+- 生成代码执行：`auditcoder/verifier_agent/sandbox/executor.py`
+  - `host`：兼容本地测试的主机子进程，不提供安全隔离
+  - `container`：Docker/Podman 后端，限制网络、根文件系统、权限、CPU、内存和 PID
 
 ---
 
@@ -175,19 +178,21 @@ problem_raw
 
 ---
 
-## 7. 已识别风险与修复优先级
+## 7. 已识别风险与修复状态
 
-## P0（建议优先处理）
+## 已修复的 P0
 
-1. `task_contract` 结构不一致风险  
-问题：调度器传给 verifier 的 `task_contract` 可能是 interface 本体，但多个 verifier 节点按 `task_contract["interface"]` 读取。  
-影响：接口校验、函数名提取、样例调用模式判断可能失效。  
-涉及：`auditcoder/algo_agents/dispatcher.py`、`auditcoder/verifier_agent/nodes/contract_verifier.py`、`auditcoder/verifier_agent/nodes/sample_test_runner.py`
+1. `task_contract` 结构已经统一
 
-2. 复杂度预算字段键不一致  
-问题：调度器传 `complexity_target={"budget": ...}`，复杂度验证读的是 `complexity_target["time"]`。  
-影响：复杂度预算约束可能未生效。  
-涉及：`auditcoder/algo_agents/dispatcher.py`、`auditcoder/verifier_agent/nodes/complexity_verifier.py`
+调度器现在构造包含 `task_id`、`agent_type` 和 `interface` 的 verifier 输入，相关节点统一从 `task_contract["interface"]` 读取。
+
+2. 复杂度预算字段已经闭合
+
+字符串预算规范化为 `complexity_target={"time": ...}`；复杂度验证器同时兼容历史 `budget` 字段，并有 dispatcher 到 verifier 的回归测试。
+
+3. 不安全执行边界已经显式化
+
+主机后端保留但明确标记为非隔离；新增可选 Docker/Podman 后端和非 root 镜像配方。容器后端不会静默回退到主机执行。
 
 ## P1（建议尽快处理）
 
@@ -222,4 +227,4 @@ problem_raw
 ## 9. 架构结论
 
 当前 AuditCoder 的主干结构清晰，具备“规划-生成-验证-回退”的基本闭环。  
-短期建议先处理 `P0` 的字段契约一致性问题，这会直接提升验证正确性与稳定性；随后处理 `P1` 的复测闭环与 IR 审查接入，整体可靠性会有明显提升。
+当前 P0 字段契约与执行边界问题已有代码和回归测试；下一步重点是处理 `P1` 的复测闭环与 IR 审查接入。

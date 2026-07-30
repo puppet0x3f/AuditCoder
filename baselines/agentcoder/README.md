@@ -20,8 +20,9 @@ HumanEval/MBPP scripts use `openai==0.28.0` and the CodeGeeX submodule. Do not
 install that requirements file into the main AuditCoder environment.
 
 The pinned upstream README identifies AgentCoder as MIT-licensed. The vendored
-snapshot remains governed by its upstream license and attribution; AuditCoder's
-project-level MIT license is provided in the repository root.
+snapshot remains governed by its upstream license and attribution. See
+`LICENSE-UPSTREAM` and the repository-level `THIRD_PARTY_NOTICES.md`; the
+AuditCoder project's own MIT license is provided in the repository root.
 
 ## Paper cross-domain adapters
 
@@ -41,9 +42,11 @@ loop while adapting generated tests to each suite's execution interface:
 5. otherwise sample another pool, up to six pools;
 6. invoke frozen external tests only after final candidate selection.
 
-The adapters run with the main AuditCoder environment and OpenAI-compatible
-DeepSeek configuration. They do not import or execute the legacy upstream
-scripts, so the old OpenAI client and CodeGeeX are not required.
+The reported cross-domain AgentCoder results use a protocol-preserving adapter,
+not the original HumanEval/MBPP runner. The adapters run with the main
+AuditCoder environment and OpenAI-compatible DeepSeek configuration. They do
+not import or execute the legacy upstream scripts, so the old OpenAI client and
+CodeGeeX are not required.
 
 The main repository README contains dataset preparation, smoke-test, full-run,
 and re-verification commands. Retained QF runs must keep `prompt.txt` with

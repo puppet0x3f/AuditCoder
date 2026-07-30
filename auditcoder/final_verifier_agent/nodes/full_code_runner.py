@@ -96,7 +96,12 @@ def _run_file_contract(
     if cleanup_errors:
         return _file_contract_error("; ".join(cleanup_errors))
 
-    result = executor.run(final_code, stdin="")
+    result = executor.run(
+        final_code,
+        stdin="",
+        workspace=app_dir,
+        writable_workspace=True,
+    )
     output_checks: list[dict[str, Any]] = []
     for relative, path in output_paths:
         passed = (

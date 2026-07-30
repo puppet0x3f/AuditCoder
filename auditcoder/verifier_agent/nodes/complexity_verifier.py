@@ -187,7 +187,11 @@ def complexity_verifier(state: VerifierState) -> dict:
     source_code = snippet["source_code"]
     contract = state.get("task_contract", {})
     complexity_target = state.get("complexity_target", {})
-    expected_time = complexity_target.get("time", contract.get("complexity_expectation", ""))
+    expected_time = (
+        complexity_target.get("time")
+        or complexity_target.get("budget")
+        or contract.get("complexity_expectation", "")
+    )
 
     static_result = _static_estimate(source_code)
 

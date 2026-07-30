@@ -16,9 +16,9 @@ Jointly generating executable programs and auditable construction records.
 
 </div>
 
-AuditCoder is the reference research implementation for the anonymous manuscript
-**“AuditCoder: Responsibility-Preserving Task Graphs for Auditable Code
-Generation and Bounded Repair.”**
+AuditCoder is a reference implementation of a responsibility-preserving
+code-generation pipeline that jointly produces executable programs and
+structured construction records.
 
 The system assigns stable responsibility IDs before code generation, binds
 node-owned code and validation evidence to those IDs, and uses the same
@@ -38,11 +38,13 @@ and repair history.
 </em></p>
 
 > [!IMPORTANT]
-> This repository currently contains experiment code, but not the paper's fixed
-> APPS task IDs, exact QF-Small6 package, complete run manifests, raw model
-> responses, historical audit records, or result bundles. The commands below
-> create new runs; they do not, by themselves, reproduce every paper table
-> numerically.
+> This repository is a development snapshot. It supports new experimental runs
+> but is not, by itself, the immutable artifact used to generate every table in
+> the paper.
+>
+> Exact table reconstruction requires the blinded Code and Data Supplement,
+> which contains the fixed task IDs, model/run manifests, raw retained outputs,
+> audit records, repair records, aggregate results, and checksums.
 
 ## Contents
 
@@ -174,7 +176,7 @@ conda create -n auditcoder python=3.13 -y
 conda activate auditcoder
 
 python -m pip install --upgrade pip
-python -m pip install -r requirements-tested.txt
+python -m pip install --require-hashes -r requirements-lock.txt
 
 cp .env.example .env
 # Edit .env and fill QWEN_API_KEY.
@@ -203,14 +205,15 @@ A successful online smoke test writes
 
 ### Tested environment
 
-- Python 3.13.12
-- macOS and CPU-only offline tests
-- Direct dependency versions in `requirements-tested.txt`
+- Local validation baseline: Python 3.13.12, macOS, CPU-only offline tests
+- Checked-in CI matrix: Ubuntu 22.04/24.04 with Python 3.11/3.12/3.13
+- Direct dependency pins: `requirements-tested.txt`
+- Full transitive, hash-locked environment: `requirements-lock.txt`
 
 ```bash
 conda create -n auditcoder python=3.13 -y
 conda activate auditcoder
-python -m pip install -r requirements-tested.txt
+python -m pip install --require-hashes -r requirements-lock.txt
 ```
 
 For a flexible installation using the minimum project declarations:
@@ -219,9 +222,16 @@ For a flexible installation using the minimum project declarations:
 python -m pip install -r requirements.txt
 ```
 
-Python 3.10+ is required by the source syntax, but
-`requirements-tested.txt` records the dependency combination actually
-validated in this repository on Python 3.13.
+Python 3.10+ is required by the source syntax. The CI floor is Python 3.11;
+`requirements-tested.txt` keeps the direct pins and `requirements-lock.txt`
+locks their transitive closure with distribution hashes.
+
+Regenerate the lock only after reviewing resolver changes:
+
+```bash
+uv pip compile --universal --python-version 3.11 --generate-hashes \
+  requirements-tested.txt --output-file requirements-lock.txt
+```
 
 <details>
 <summary><strong>venv installation</strong></summary>
@@ -230,7 +240,7 @@ validated in this repository on Python 3.13.
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install --require-hashes -r requirements-lock.txt
 cp .env.example .env
 ```
 
@@ -609,8 +619,11 @@ the CodeGeeX submodule. The adapters do not execute the legacy OpenAI 0.28
 scripts; they preserve the programmer/test-designer/test-executor protocol
 using this repository's current OpenAI-compatible client.
 
-The pinned upstream README identifies AgentCoder as MIT-licensed. Vendored
-third-party files remain governed by their upstream license and attribution.
+The reported cross-domain AgentCoder results use a protocol-preserving adapter,
+not the original HumanEval/MBPP runner. The pinned upstream README identifies
+AgentCoder as MIT-licensed. Vendored third-party files remain governed by their
+upstream license and attribution; see `THIRD_PARTY_NOTICES.md` and
+`baselines/agentcoder/LICENSE-UPSTREAM`.
 
 Each AgentCoder run writes:
 
@@ -685,9 +698,13 @@ These checks do not call a model:
 ```bash
 python -m compileall -q \
   auditcoder auditcoder_class baselines/agentcoder tests experiments \
-  sample_apps_by_difficulty.py
+  scripts sample_apps_by_difficulty.py
+
+python scripts/validate_artifact_manifest.py --self-test
 
 python tests/run_apps_audit_metrics.py --self-test
+
+python scripts/check_no_secrets.py
 
 python -m pytest -p no:cacheprovider tests \
   --ignore=tests/test_verifier_agent_1.py \
@@ -886,9 +903,11 @@ reported separately from functional correctness.
 
 ```text
 AuditCoder/
+├── .github/workflows/           # Linux/Python offline CI matrix
 ├── assets/                     # README/paper overview assets
 ├── baselines/
 │   └── agentcoder/             # upstream source snapshot and protocol notes
+├── containers/eval/            # pinned non-root Python evaluation image
 ├── auditcoder/
 │   ├── plan_agent/             # contracts, decomposition, task graph
 │   ├── algo_agents/            # node-local algorithm generators
@@ -897,11 +916,14 @@ AuditCoder/
 │   ├── final_verifier_agent/   # global evidence, localization, repair
 │   └── schemas/                # task-plan and verification schemas
 ├── auditcoder_class/           # ClassEval class-level pipeline
+├── scripts/                    # artifact validation and secret checks
 ├── tests/                      # APPS runners, baselines, ablations, tests
 ├── experiments/                # cross-domain builders, judges, and runners
+├── THIRD_PARTY_NOTICES.md
 ├── sample_apps_by_difficulty.py
 ├── requirements.txt            # flexible direct dependencies
 ├── requirements-tested.txt     # locally verified direct versions
+├── requirements-lock.txt       # transitive versions and distribution hashes
 ├── requirements-cross-domain.txt
 │                               # extra scientific/data dependencies
 └── .env.example
@@ -914,6 +936,10 @@ For a module-level walkthrough, see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 | Artifact | Current repository |
 | --- | --- |
 | Core generation and verification code | Included |
+| Docker/Podman generated-code backend and pinned image recipe | Included |
+| Ubuntu/Python offline CI configuration | Included |
+| Transitive dependency lock with hashes | Included |
+| Artifact-manifest validator | Included |
 | APPS and ClassEval runners | Included |
 | AgentCoder code-only upstream snapshot | Included |
 | Cross-domain AuditCoder/AgentCoder adapters | Included |
@@ -943,6 +969,13 @@ For a defensible experiment, archive:
    acceptance/rollback record;
 8. expected denominator, malformed/missing records, and aggregation output.
 
+Validate a restored Code and Data Supplement before aggregating it:
+
+```bash
+python scripts/validate_artifact_manifest.py \
+  /path/to/supplement/artifact_manifest.json
+```
+
 The AeroComm suite can be regenerated from its included source-grounded
 builder. SciCode can be rebuilt after downloading its pinned public JSONL and
 official private HDF5 targets. QF-Small6 cannot be reconstructed exactly from
@@ -951,18 +984,36 @@ are absent.
 
 ## Safety
 
-Generated programs are executed by a host Python subprocess. The current
-executor is not a container-grade security sandbox: it does not isolate
+The historical/default `host` backend executes generated programs in a host
+Python subprocess. It is not a security sandbox: it does not isolate the
 filesystem, network, environment variables, or system calls, and macOS skips
 the memory `RLIMIT`.
 
-Run model-generated code in a network-restricted container or disposable
-low-privilege account with no production credentials or sensitive files.
+For untrusted generated code, build and select the container backend:
+
+```bash
+docker build --tag auditcoder-eval:aaai27 containers/eval
+
+export AUDITCODER_EXECUTION_BACKEND=container
+export AUDITCODER_CONTAINER_RUNTIME=docker
+export AUDITCODER_CONTAINER_IMAGE=auditcoder-eval:aaai27
+```
+
+The executor applies `--network=none`, a read-only root filesystem, a non-root
+UID, dropped capabilities, `no-new-privileges`, CPU/memory/PID limits, and a
+bounded `noexec` temporary filesystem. It mounts generated code read-only and
+does not forward host API keys. A file-I/O execution contract mounts only its
+explicit `app_dir` writable. See `containers/eval/README.md` for the exact
+boundary.
+
+If Docker/Podman is unavailable, use a disposable low-privilege account with no
+production credentials or sensitive files; do not mistake the host backend's
+timeout/resource checks for isolation.
 
 ## Citation
 
-The AuditCoder manuscript is currently anonymous. Add the final author list,
-venue, paper URL, and BibTeX entry only when the public version is available.
+Add the final author list, venue, paper URL, and BibTeX entry when the public
+paper version is available.
 
 Datasets:
 
@@ -1010,6 +1061,7 @@ Third-party code, benchmark data, model outputs, and generated datasets remain
 governed by their respective upstream licenses and terms. In particular,
 ClassEval data and QF-Bench-derived data are non-commercial datasets; the MIT
 license applies to AuditCoder's source code, not to those external datasets.
+See `THIRD_PARTY_NOTICES.md` for vendored-code attribution.
 
-The overview image is derived from the anonymous review manuscript. Confirm
-the venue's artifact and anonymity policy before publishing this repository.
+Confirm the venue's artifact and anonymity policy before publishing a
+manuscript-linked repository or supplement.
