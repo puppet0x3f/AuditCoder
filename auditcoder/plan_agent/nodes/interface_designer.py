@@ -6,7 +6,7 @@ import json
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from auditcoder.plan_agent.llm import get_llm
+from auditcoder.plan_agent.llm import get_llm, invoke_llm
 from auditcoder.plan_agent.nodes._utils import extract_json
 from auditcoder.plan_agent.prompts.designer import (
     INTERFACE_DESIGNER_SYSTEM,
@@ -34,7 +34,7 @@ def interface_designer(state: PlanState) -> dict:
             )
         ),
     ]
-    response = llm.invoke(messages)
+    response = invoke_llm(llm, messages)
     parsed = extract_json(response)
 
     return {"interface_definitions": parsed, "messages": messages + [response]}

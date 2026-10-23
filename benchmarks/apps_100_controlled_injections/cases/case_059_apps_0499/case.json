@@ -1,0 +1,170 @@
+{
+  "case_id": "case_059_apps_0499",
+  "position": 59,
+  "problem_id": 499,
+  "difficulty": "interview",
+  "url": "https://codeforces.com/problemset/problem/626/B",
+  "question_file": "APPS/test/0499/question.txt",
+  "test_count": 46,
+  "reference_solution_index": 0,
+  "reference_source": "APPS/test/solutions.json",
+  "reference_provenance": {
+    "kind": "reference"
+  },
+  "reference_validation": {
+    "syntax_ok": true,
+    "all_passed": true,
+    "cases_run": 46,
+    "passed_count": 46,
+    "max_case_time_ms": 32.01473702210933,
+    "first_failure": null
+  },
+  "entry_anchor": {
+    "kind": "function",
+    "name": "main",
+    "line": 1,
+    "end_line": 26,
+    "selected_by": "top_level_call"
+  },
+  "mutation_validation": {
+    "syntax_ok": true,
+    "activation": {
+      "syntax_ok": true,
+      "all_passed": false,
+      "cases_run": 1,
+      "passed_count": 0,
+      "max_case_time_ms": 36.85499302810058,
+      "first_failure": {
+        "passed": false,
+        "symptom": "RE",
+        "actual": "",
+        "expected": "G",
+        "timed_out": false,
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 34, in <module>\n    main()\n    ~~~~^^\n  File \"<string>\", line 2, in main\n    raise TypeError('APPS_CONTROLLED_INTERFACE_CONTRACT_499')\nTypeError: APPS_CONTROLLED_INTERFACE_CONTRACT_499\n",
+        "time_ms": 36.85499302810058,
+        "case_index": 0
+      }
+    },
+    "expected_symptom": "contract_error"
+  },
+  "common_fault": {
+    "id": "interface_contract",
+    "description": "violate the unit input/output contract with a TypeError",
+    "symptom": "contract_error",
+    "mutation": "insert_contract_exception",
+    "same_semantics_across_methods": true,
+    "marker": "APPS_CONTROLLED_INTERFACE_CONTRACT_499",
+    "clean_sha256": "1101521a5405093716019aea60b8c12fb3f17b253152d90c3df19aae5171a3dd",
+    "faulty_sha256": "812d7cd57ea7025955442c078c3f8d49ee986383a077ce2ea53f4378c1d69ff1"
+  },
+  "methods": {
+    "auditcoder": {
+      "unit_id": "A_leaf_main",
+      "unit_kind": "TaskPlanIR leaf / ownership-map owner",
+      "responsibility_map": {
+        "main": "A_leaf_main"
+      },
+      "injection_anchor": "leaf implementation entry",
+      "repair_flow": "Trace -> Resource -> Local -> SelectScope -> bounded regeneration",
+      "fault_type": "interface_contract",
+      "native_result": {
+        "record_available": true,
+        "status": "ok",
+        "is_solved": null,
+        "pipeline_all_passed": true,
+        "trace": null,
+        "catg": {
+          "schema_version": "catg-1.0",
+          "node_count": 2,
+          "code_owner_count": 2,
+          "registered_unit_count": 2,
+          "development_check_count": 15,
+          "responsibility_record_count": 2,
+          "evidence_record_count": 1,
+          "validation_errors": []
+        },
+        "responsibility_record_ids": [
+          "S0",
+          "S1"
+        ]
+      },
+      "fault_id": "APPS_CONTROLLED_INTERFACE_CONTRACT_499",
+      "faulty_source": "cases/case_059_apps_0499/methods/auditcoder.py",
+      "clean_source": "cases/case_059_apps_0499/clean.py",
+      "clean_sha256": "1101521a5405093716019aea60b8c12fb3f17b253152d90c3df19aae5171a3dd",
+      "faulty_sha256": "812d7cd57ea7025955442c078c3f8d49ee986383a077ce2ea53f4378c1d69ff1",
+      "same_semantics_as_other_methods": true
+    },
+    "codesim": {
+      "unit_id": "CS_step_main",
+      "unit_kind": "CodeSIM plan/simulation step",
+      "responsibility_map": {
+        "main": "CS_step_main"
+      },
+      "injection_anchor": "plan step executed by final code/debug loop",
+      "repair_flow": "plan/simulation -> code generation -> bounded debug retry",
+      "fault_type": "interface_contract",
+      "native_result": {
+        "record_available": true,
+        "status": "completed",
+        "is_solved": true,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_INTERFACE_CONTRACT_499",
+      "faulty_source": "cases/case_059_apps_0499/methods/codesim.py",
+      "clean_source": "cases/case_059_apps_0499/clean.py",
+      "clean_sha256": "1101521a5405093716019aea60b8c12fb3f17b253152d90c3df19aae5171a3dd",
+      "faulty_sha256": "812d7cd57ea7025955442c078c3f8d49ee986383a077ce2ea53f4378c1d69ff1",
+      "same_semantics_as_other_methods": true
+    },
+    "mapcoder": {
+      "unit_id": "MC_map_main",
+      "unit_kind": "MapCoder recalled-example/planning mapped unit",
+      "responsibility_map": {
+        "main": "MC_map_main"
+      },
+      "injection_anchor": "mapped algorithm implementation unit",
+      "repair_flow": "mapping/planning -> code generation -> bounded improve retry",
+      "fault_type": "interface_contract",
+      "native_result": {
+        "record_available": true,
+        "status": "completed",
+        "is_solved": true,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_INTERFACE_CONTRACT_499",
+      "faulty_source": "cases/case_059_apps_0499/methods/mapcoder.py",
+      "clean_source": "cases/case_059_apps_0499/clean.py",
+      "clean_sha256": "1101521a5405093716019aea60b8c12fb3f17b253152d90c3df19aae5171a3dd",
+      "faulty_sha256": "812d7cd57ea7025955442c078c3f8d49ee986383a077ce2ea53f4378c1d69ff1",
+      "same_semantics_as_other_methods": true
+    },
+    "agentcoder": {
+      "unit_id": "AC_candidate_main",
+      "unit_kind": "AgentCoder programmer candidate unit",
+      "responsibility_map": {
+        "main": "AC_candidate_main"
+      },
+      "injection_anchor": "programmer candidate selected by executor feedback",
+      "repair_flow": "test designer -> programmer candidates -> executor feedback -> bounded repair",
+      "fault_type": "interface_contract",
+      "native_result": {
+        "record_available": false,
+        "status": null,
+        "is_solved": null,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_INTERFACE_CONTRACT_499",
+      "faulty_source": "cases/case_059_apps_0499/methods/agentcoder.py",
+      "clean_source": "cases/case_059_apps_0499/clean.py",
+      "clean_sha256": "1101521a5405093716019aea60b8c12fb3f17b253152d90c3df19aae5171a3dd",
+      "faulty_sha256": "812d7cd57ea7025955442c078c3f8d49ee986383a077ce2ea53f4378c1d69ff1",
+      "same_semantics_as_other_methods": true
+    }
+  },
+  "question_copy": "cases/case_059_apps_0499/question.txt"
+}

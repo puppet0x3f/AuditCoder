@@ -4,6 +4,7 @@ from .final_report_assembler import final_report_assembler
 from .task_replanner import task_replanner
 from .algo_retrier import algo_retrier
 from .code_reassembler import code_reassembler
+from .scope_selector import scope_selector
 
 __all__ = [
     "full_code_runner",
@@ -12,4 +13,5 @@ __all__ = [
     "task_replanner",
     "algo_retrier",
     "code_reassembler",
+    "scope_selector",
 ]

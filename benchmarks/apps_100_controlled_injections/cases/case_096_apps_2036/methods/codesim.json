@@ -1,0 +1,31 @@
+{
+  "case_id": "case_096_apps_2036",
+  "problem_id": 2036,
+  "method": "codesim",
+  "common_fault": {
+    "id": "resource_timeout",
+    "description": "insert an unbounded loop at the owned entry unit",
+    "symptom": "TLE",
+    "mutation": "insert_infinite_loop"
+  },
+  "method_unit": {
+    "unit_id": "CS_step___module__",
+    "unit_kind": "CodeSIM plan/simulation step",
+    "responsibility_map": {
+      "__module__": "CS_step___module__"
+    },
+    "injection_anchor": "plan step executed by final code/debug loop",
+    "repair_flow": "plan/simulation -> code generation -> bounded debug retry",
+    "fault_type": "resource_timeout"
+  },
+  "native_result": {
+    "record_available": true,
+    "status": "completed",
+    "is_solved": false,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "5e687101e2b376ef63e1b73d887256045b565ce7ff200cf1e9d6358b1741867e",
+  "faulty_sha256": "41465e1380bb81ad7820ecc4a657efab2c671db8e56920a51af2885201112605",
+  "faulty_source": "cases/case_096_apps_2036/methods/codesim.py"
+}

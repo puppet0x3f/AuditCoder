@@ -6,7 +6,7 @@ import json
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from auditcoder.plan_agent.llm import get_llm
+from auditcoder.plan_agent.llm import get_llm, invoke_llm
 from auditcoder.plan_agent.nodes._utils import extract_json
 from auditcoder.plan_agent.prompts.analyzer import (
     CONSTRAINT_ANALYZER_SYSTEM,
@@ -28,7 +28,7 @@ def constraint_analyzer(state: PlanState) -> dict:
             )
         ),
     ]
-    response = llm.invoke(messages)
+    response = invoke_llm(llm, messages)
     parsed = extract_json(response)
 
     return {"constraint_analysis": parsed, "messages": messages + [response]}

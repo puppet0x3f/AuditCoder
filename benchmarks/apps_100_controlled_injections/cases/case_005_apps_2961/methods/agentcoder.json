@@ -1,0 +1,31 @@
+{
+  "case_id": "case_005_apps_2961",
+  "problem_id": 2961,
+  "method": "agentcoder",
+  "common_fault": {
+    "id": "runtime_exception",
+    "description": "raise a deterministic RuntimeError at the owned entry unit",
+    "symptom": "RE",
+    "mutation": "insert_raise"
+  },
+  "method_unit": {
+    "unit_id": "AC_candidate_solve",
+    "unit_kind": "AgentCoder programmer candidate unit",
+    "responsibility_map": {
+      "solve": "AC_candidate_solve"
+    },
+    "injection_anchor": "programmer candidate selected by executor feedback",
+    "repair_flow": "test designer -> programmer candidates -> executor feedback -> bounded repair",
+    "fault_type": "runtime_exception"
+  },
+  "native_result": {
+    "record_available": false,
+    "status": null,
+    "is_solved": null,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "8ba70f665997c26a11c2635702fa6a2a2c16e03e799f2b3fd9f8aa57c5d7491a",
+  "faulty_sha256": "b460033fe5c6979624e8db2b816a1bbe2299a404fe6148b2b05f06bcafd3a36d",
+  "faulty_source": "cases/case_005_apps_2961/methods/agentcoder.py"
+}

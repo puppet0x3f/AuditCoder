@@ -6,7 +6,7 @@ import json
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from auditcoder.plan_agent.llm import get_llm
+from auditcoder.plan_agent.llm import get_llm, invoke_llm
 from auditcoder.plan_agent.nodes._utils import extract_json
 from auditcoder.plan_agent.prompts.reviewer import (
     TEST_CASE_ANALYZER_SYSTEM,
@@ -49,7 +49,7 @@ def test_case_analyzer(state: PlanState) -> dict:
         ),
     ]
     try:
-        response = llm.invoke(messages)
+        response = invoke_llm(llm, messages)
         parsed = extract_json(response)
     except Exception as exc:
         fallback = _fallback_test_cases(problem_structured)

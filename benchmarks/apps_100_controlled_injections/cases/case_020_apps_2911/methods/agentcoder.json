@@ -1,0 +1,31 @@
+{
+  "case_id": "case_020_apps_2911",
+  "problem_id": 2911,
+  "method": "agentcoder",
+  "common_fault": {
+    "id": "resource_timeout",
+    "description": "insert an unbounded loop at the owned entry unit",
+    "symptom": "TLE",
+    "mutation": "insert_infinite_loop"
+  },
+  "method_unit": {
+    "unit_id": "AC_candidate___module__",
+    "unit_kind": "AgentCoder programmer candidate unit",
+    "responsibility_map": {
+      "__module__": "AC_candidate___module__"
+    },
+    "injection_anchor": "programmer candidate selected by executor feedback",
+    "repair_flow": "test designer -> programmer candidates -> executor feedback -> bounded repair",
+    "fault_type": "resource_timeout"
+  },
+  "native_result": {
+    "record_available": false,
+    "status": null,
+    "is_solved": null,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "f9504a544ac72b5632ebc81977877ab94d2ac72444f066a95eeb241c440761ca",
+  "faulty_sha256": "77229dc4ea07d08937ed57d84d886bd6d6cda6bee17da2480fd206ad45164b0b",
+  "faulty_source": "cases/case_020_apps_2911/methods/agentcoder.py"
+}

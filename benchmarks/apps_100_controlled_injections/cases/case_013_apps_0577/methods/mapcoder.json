@@ -1,0 +1,31 @@
+{
+  "case_id": "case_013_apps_0577",
+  "problem_id": 577,
+  "method": "mapcoder",
+  "common_fault": {
+    "id": "runtime_exception",
+    "description": "raise a deterministic RuntimeError at the owned entry unit",
+    "symptom": "RE",
+    "mutation": "insert_raise"
+  },
+  "method_unit": {
+    "unit_id": "MC_map___module__",
+    "unit_kind": "MapCoder recalled-example/planning mapped unit",
+    "responsibility_map": {
+      "__module__": "MC_map___module__"
+    },
+    "injection_anchor": "mapped algorithm implementation unit",
+    "repair_flow": "mapping/planning -> code generation -> bounded improve retry",
+    "fault_type": "runtime_exception"
+  },
+  "native_result": {
+    "record_available": true,
+    "status": "completed",
+    "is_solved": true,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "fb0ac623a0f238caf6c6c45687f26aa06a9b0159c50795a147755ad0fdec802f",
+  "faulty_sha256": "25fda50a845766c79ea8c73cc3fa8920ecd6fce79990655179e68e55c285d3c0",
+  "faulty_source": "cases/case_013_apps_0577/methods/mapcoder.py"
+}

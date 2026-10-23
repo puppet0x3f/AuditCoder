@@ -14,6 +14,9 @@ You must extract the following information:
    - memory_limit — memory limit (e.g., "256MB")
    - data_ranges — data ranges for each variable, format: [{{"var": "n", "min": 1, "max": 100000}}]
 6. sample_cases — sample input/output, format: [{{"input": "...", "output": "...", "explanation": "..."}}]
+7. starter_code — if an explicit class/method template is present, copy it
+   verbatim; otherwise use an empty string. Also record callable_name when the
+   statement/template defines a function-style benchmark method.
 
 Contract consistency requirements:
 - Treat the supplied Sample Input and Sample Output as authoritative evidence
@@ -26,6 +29,9 @@ Contract consistency requirements:
   every sample output with output_format. Correct any direction mismatch.
 - If a figure/table/diagram is referenced but its content is absent, state that
   the asset is missing in the description instead of inventing its semantics.
+- A starter template is an executable interface contract. Do not reinterpret a
+  function-style task as a stdin problem, and do not add an outer list around
+  its positional arguments.
 
 ## Output Example
 

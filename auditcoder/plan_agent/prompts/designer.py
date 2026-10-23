@@ -21,6 +21,27 @@ When designing interfaces, note:
 - preconditions and postconditions must be string **arrays** (even with only one item, write ["..."], not a plain string)
 - The function signature should be self-contained so that the algorithm Agent can implement it without any external context
 - Outputs from other tasks (source references) should be passed in as function parameters
+- Treat every precondition, postcondition, and invariant as an obligation that
+  can later be tied to an executed check. Keep obligations concrete and
+  testable; do not claim formal proof.
+- Preserve the provider identity encoded in each input slot's `source`. A
+  cross-node value is an interface/provenance obligation, not an invitation to
+  recompute or rename the provider's output.
+- The interface is a stable responsibility boundary. Later node-local repair
+  may change implementation guidance, but it must preserve this signature and
+  data-flow contract.
+- At least one leaf must be an end-to-end solver. Its parameters must contain
+  the complete problem data needed to compute the final answer, and its return
+  value must be the exact value/witness that the root prints. Do not give the
+  core solver an interface that only returns a helper closure or a partial
+  intermediate object.
+- For a construction or witness task, make postconditions executable: state
+  the validity, direction, uniqueness, ordering, bounds, or prefix invariant
+  that the returned object must satisfy. If the statement allows any valid
+  witness, never encode one sample witness as the only acceptable value.
+- When a starter template names a class/method (for example ``Solution.merge``),
+  preserve that callable boundary and make the interface describe the method
+  arguments and return value rather than inventing a stdin parser.
 
 ## Output Example
 

@@ -9,6 +9,13 @@ correct but does not need to be efficient
 very small n (<=8)
 
 Requirements:
+- Verify the single task node specified by its goal, input/output slots, and
+  interface return_description. The full problem is background context.
+- An internal helper's reference must return that helper's intermediate
+  result. Do not apply downstream operations or return the whole problem's
+  answer just because the input parameters or return type are the same.
+- Task-scoped cases describe this node's behavior. Whole-program examples
+  are not expected outputs for an intermediate function.
 - The brute-force solution must match the given function interface signature (same function name, \
 parameters, and return type)
 - The brute-force solution should use the most straightforward method (enumeration, backtracking, \
@@ -25,12 +32,22 @@ Return in JSON format:
 """
 
 BRUTEFORCE_GEN_USER = """\
-## Problem Information
+## Full Problem (background context)
 {problem_description}
+
+## Task Responsibility Contract (authoritative verification target)
+```json
+{task_contract_json}
+```
 
 ## Function Interface Contract
 ```json
 {interface_json}
+```
+
+## Task-Scoped Test Cases
+```json
+{local_cases_json}
 ```
 
 ## Data Ranges

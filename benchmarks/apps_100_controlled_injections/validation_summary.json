@@ -1,0 +1,22 @@
+{
+  "cases": 100,
+  "method_mutant_files": 400,
+  "clean_references_fully_verified": 100,
+  "mutant_syntax_ok": 100,
+  "fault_type_counts": {
+    "runtime_exception": 25,
+    "wrong_answer": 25,
+    "interface_contract": 25,
+    "resource_timeout": 25
+  },
+  "reference_provenance_counts": {
+    "APPS/test/0583 test-set oracle fallback": 1,
+    "APPS/test/2685 test-set oracle fallback": 1,
+    "APPS/test/2911 test-set oracle fallback": 1,
+    "APPS/test/solutions.json": 78,
+    "native codesim generated code": 18,
+    "native mapcoder generated code": 1
+  },
+  "same_fault_marker_per_case": true,
+  "same_faulty_hash_per_case": true
+}

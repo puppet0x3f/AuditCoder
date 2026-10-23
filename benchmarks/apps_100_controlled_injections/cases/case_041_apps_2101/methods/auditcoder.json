@@ -1,0 +1,48 @@
+{
+  "case_id": "case_041_apps_2101",
+  "problem_id": 2101,
+  "method": "auditcoder",
+  "common_fault": {
+    "id": "runtime_exception",
+    "description": "raise a deterministic RuntimeError at the owned entry unit",
+    "symptom": "RE",
+    "mutation": "insert_raise"
+  },
+  "method_unit": {
+    "unit_id": "A_leaf___module__",
+    "unit_kind": "TaskPlanIR leaf / ownership-map owner",
+    "responsibility_map": {
+      "__module__": "A_leaf___module__"
+    },
+    "injection_anchor": "leaf implementation entry",
+    "repair_flow": "Trace -> Resource -> Local -> SelectScope -> bounded regeneration",
+    "fault_type": "runtime_exception"
+  },
+  "native_result": {
+    "record_available": true,
+    "status": "ok",
+    "is_solved": null,
+    "pipeline_all_passed": true,
+    "trace": null,
+    "catg": {
+      "schema_version": "catg-1.0",
+      "node_count": 5,
+      "code_owner_count": 5,
+      "registered_unit_count": 6,
+      "development_check_count": 9,
+      "responsibility_record_count": 5,
+      "evidence_record_count": 5,
+      "validation_errors": []
+    },
+    "responsibility_record_ids": [
+      "S0",
+      "S1",
+      "S1_1",
+      "S1_2",
+      "S1_3"
+    ]
+  },
+  "clean_sha256": "0b10e8465470d9c17cbd2e1ff0b3755ff43eda1931769e813a36729f61f1a19c",
+  "faulty_sha256": "58889592ac9641871d60ab64b142b78a1995f630272f8354e7cb435fcd4c3bad",
+  "faulty_source": "cases/case_041_apps_2101/methods/auditcoder.py"
+}

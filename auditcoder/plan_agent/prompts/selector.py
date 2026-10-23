@@ -25,6 +25,15 @@ Notes:
   family immediately when its predicted answer disagrees with a sample.
 - The reasoning chain must state the maintained correctness invariant, not only
   the target complexity.
+- Include one adversarial micro-instance that distinguishes the selected
+  algorithm from the most tempting wrong shortcut. For probability and
+  constructive tasks, identify the exact stopping event or witness invariant;
+  for geometry, identify the coupled constraints instead of assuming
+  coordinate-wise separability.
+- If a deterministic audit card is supplied, treat it as a concrete algorithm
+  obligation: either prove and sample-check it or explicitly explain why the
+  statement contradicts it. Do not silently revert to a generic greedy/DP
+  template.
 
 ## Output Example
 

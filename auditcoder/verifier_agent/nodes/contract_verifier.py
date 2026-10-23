@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import ast
+import re
 from typing import Any
 
 from auditcoder.verifier_agent.state import VerifierState
@@ -24,6 +25,29 @@ def _get_annotation_str(annotation: ast.expr | None) -> str:
     if annotation is None:
         return ""
     return ast.unparse(annotation)
+
+
+def _canonical_type(value: str) -> str:
+    """Normalize equivalent typing spellings before comparing interfaces.
+
+    Agents commonly use ``List[int]``/``list[int]`` or ``Tuple``/``tuple``
+    interchangeably.  These are the same runtime contract; rejecting one
+    spelling caused otherwise valid helper bundles to be withheld from the
+    assembler and could leave the final program empty.
+    """
+    text = re.sub(r"\btyping\.", "", str(value or ""))
+    aliases = {
+        "List": "list",
+        "Dict": "dict",
+        "Set": "set",
+        "Tuple": "tuple",
+        "FrozenSet": "frozenset",
+        "Sequence": "Sequence",
+        "Mapping": "Mapping",
+    }
+    for source, target in aliases.items():
+        text = re.sub(rf"\b{source}\b", target, text)
+    return re.sub(r"\s+", "", text)
 
 
 def _check_signature(
@@ -56,14 +80,22 @@ def _check_signature(
         arg_node = func.args.args[idx]
         actual_type = _get_annotation_str(arg_node.annotation)
         expected_type = p.get("type", "")
-        if expected_type and actual_type and actual_type != expected_type:
+        if (
+            expected_type
+            and actual_type
+            and _canonical_type(actual_type) != _canonical_type(expected_type)
+        ):
             violations.append(
                 f"参数 {p['name']} 类型不匹配: 期望 {expected_type}, 实际 {actual_type}"
             )
 
     ret_annotation = _get_annotation_str(func.returns)
     expected_ret = interface.get("return_type", "")
-    if expected_ret and ret_annotation and ret_annotation != expected_ret:
+    if (
+        expected_ret
+        and ret_annotation
+        and _canonical_type(ret_annotation) != _canonical_type(expected_ret)
+    ):
         violations.append(
             f"返回类型不匹配: 期望 {expected_ret}, 实际 {ret_annotation}"
         )

@@ -1,0 +1,34 @@
+{
+  "fault_types": [
+    {
+      "id": "runtime_exception",
+      "description": "raise a deterministic RuntimeError at the owned entry unit",
+      "symptom": "RE",
+      "mutation": "insert_raise"
+    },
+    {
+      "id": "wrong_answer",
+      "description": "return an invalid answer or emit an extra invalid output",
+      "symptom": "WA",
+      "mutation": "replace_entry_result"
+    },
+    {
+      "id": "interface_contract",
+      "description": "violate the unit input/output contract with a TypeError",
+      "symptom": "contract_error",
+      "mutation": "insert_contract_exception"
+    },
+    {
+      "id": "resource_timeout",
+      "description": "insert an unbounded loop at the owned entry unit",
+      "symptom": "TLE",
+      "mutation": "insert_infinite_loop"
+    }
+  ],
+  "methods": [
+    "auditcoder",
+    "codesim",
+    "mapcoder",
+    "agentcoder"
+  ]
+}

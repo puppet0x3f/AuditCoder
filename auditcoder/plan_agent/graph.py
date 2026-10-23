@@ -1,7 +1,8 @@
 """LangGraph StateGraph definition for the Plan Agent.
 
 This module wires all nodes together into a directed graph that produces a
-TaskPlanIR in a single pass (no revision loop).
+TaskPlanIR plus a CATG review record in one pass (without a hidden revision
+loop).
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from auditcoder.plan_agent.nodes import (
     deep_thinker,
     interface_designer,
     ir_assembler,
+    ir_reviewer,
     problem_parser,
     task_decomposer,
     test_case_analyzer,
@@ -34,6 +36,7 @@ def build_plan_agent_graph() -> StateGraph:
     graph.add_node("interface_designer", interface_designer)
     graph.add_node("test_case_analyzer", test_case_analyzer)
     graph.add_node("ir_assembler", ir_assembler)
+    graph.add_node("ir_reviewer", ir_reviewer)
 
     graph.set_entry_point("problem_parser")
 
@@ -44,7 +47,8 @@ def build_plan_agent_graph() -> StateGraph:
     graph.add_edge("task_decomposer", "interface_designer")
     graph.add_edge("interface_designer", "test_case_analyzer")
     graph.add_edge("test_case_analyzer", "ir_assembler")
-    graph.add_edge("ir_assembler", END)
+    graph.add_edge("ir_assembler", "ir_reviewer")
+    graph.add_edge("ir_reviewer", END)
 
     return graph.compile()
 
@@ -68,6 +72,7 @@ def build_partial_replan_graph() -> StateGraph:
     graph.add_node("interface_designer", interface_designer)
     graph.add_node("test_case_analyzer", test_case_analyzer)
     graph.add_node("ir_assembler", ir_assembler)
+    graph.add_node("ir_reviewer", ir_reviewer)
 
     graph.set_entry_point("deep_thinker")
 
@@ -77,6 +82,7 @@ def build_partial_replan_graph() -> StateGraph:
     graph.add_edge("task_decomposer", "interface_designer")
     graph.add_edge("interface_designer", "test_case_analyzer")
     graph.add_edge("test_case_analyzer", "ir_assembler")
-    graph.add_edge("ir_assembler", END)
+    graph.add_edge("ir_assembler", "ir_reviewer")
+    graph.add_edge("ir_reviewer", END)
 
     return graph.compile()

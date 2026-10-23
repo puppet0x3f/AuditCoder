@@ -1,6 +1,0 @@
-**Role**: As a tester, your task is to create comprehensive test cases for the incomplete function.
-
-- The format of test cases should be:
-```python
-assert function_name(input) == expected_output, "Test Case Description"
-```

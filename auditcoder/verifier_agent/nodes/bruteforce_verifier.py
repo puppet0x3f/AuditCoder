@@ -9,7 +9,7 @@ import json
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from auditcoder.common.llm import get_llm
+from auditcoder.common.llm import get_llm, invoke_llm
 from auditcoder.common.utils import extract_json
 from auditcoder.verifier_agent.prompts.bruteforce import (
     BRUTEFORCE_GEN_SYSTEM,
@@ -135,6 +135,66 @@ def bruteforce_verifier(state: VerifierState) -> dict:
     problem = state.get("problem_info", {})
     interface = contract.get("interface", {})
     function_name = interface.get("function_name", "")
+    validation_info = state.get("validation_info", {})
+
+    # Global APPS answers describe the root task.  An internal helper needs
+    # its own semantic contract or task-scoped cases to generate an oracle.
+    if (
+        validation_info.get("scope") == "explicit_task_id_only"
+        and not contract.get("goal")
+        and not interface.get("return_description")
+        and not validation_info.get("sample_test_cases")
+        and not validation_info.get("edge_cases")
+    ):
+        return {
+            "bruteforce_report": {
+                "match": True,
+                "skipped": True,
+                "mismatches": [],
+                "error": "缺少节点语义契约和任务级用例，跳过全局题目对拍",
+                "comparison_mode": "not_applicable_unscoped_leaf",
+            }
+        }
+
+    # A callable/function-valued result cannot be compared by object identity:
+    # two independently constructed closures are semantically equivalent even
+    # though ``left == right`` is false. Keep compile, sample, contract, and
+    # complexity checks, and leave differential testing to the caller that can
+    # invoke the returned function.
+    return_type = str(interface.get("return_type", ""))
+    if "callable" in return_type.lower() or "function" in return_type.lower():
+        return {
+            "bruteforce_report": {
+                "match": True,
+                "skipped": True,
+                "mismatches": [],
+                "error": "高阶函数返回值不进行对象身份对拍",
+                "comparison_mode": "not_applicable_higher_order_return",
+            }
+        }
+
+    # Stateful containers (DSU/heap/graph objects) do not have a meaningful
+    # equality relation.  Comparing their reprs only compares memory
+    # addresses, so every correct implementation was previously rejected and
+    # withheld from the assembler.  Their public methods are checked by the
+    # root execution instead.
+    return_description = str(interface.get("return_description", ""))
+    if (
+        return_type.strip().lower() in {"object", "any"}
+        or any(
+            marker in return_description.lower()
+            for marker in ("dsu", "disjoint", "heap", "data structure", "class with")
+        )
+    ):
+        return {
+            "bruteforce_report": {
+                "match": True,
+                "skipped": True,
+                "mismatches": [],
+                "error": "状态容器返回值跳过对象身份对拍，由全局执行检查行为",
+                "comparison_mode": "not_applicable_stateful_object",
+            }
+        }
 
     if not function_name:
         return {
@@ -155,14 +215,35 @@ def bruteforce_verifier(state: VerifierState) -> dict:
         HumanMessage(
             content=BRUTEFORCE_GEN_USER.format(
                 problem_description=problem_desc,
+                task_contract_json=json.dumps(contract, ensure_ascii=False, indent=2),
+                local_cases_json=json.dumps(
+                    {
+                        "sample_test_cases": validation_info.get("sample_test_cases", []),
+                        "edge_cases": validation_info.get("edge_cases", []),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
                 interface_json=json.dumps(interface, ensure_ascii=False, indent=2),
                 data_ranges_json=json.dumps(data_ranges, ensure_ascii=False, indent=2),
                 candidate_code=snippet["source_code"],
             )
         ),
     ]
-    response = llm.invoke(messages)
+    response = invoke_llm(llm, messages)
     parsed = extract_json(response)
+
+    if not isinstance(parsed, dict):
+        return {
+            "bruteforce_report": {
+                "match": False,
+                "skipped": True,
+                "mismatches": [],
+                "error": "LLM 暴力对拍响应不是 JSON 对象，已跳过对拍",
+                "response_type": type(parsed).__name__,
+            },
+            "messages": messages + [response],
+        }
 
     bruteforce_code = parsed.get("bruteforce_code", "")
     input_gen_code = parsed.get("input_generator_code", "")

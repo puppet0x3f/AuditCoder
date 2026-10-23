@@ -1,0 +1,31 @@
+{
+  "case_id": "case_078_apps_0829",
+  "problem_id": 829,
+  "method": "agentcoder",
+  "common_fault": {
+    "id": "wrong_answer",
+    "description": "return an invalid answer or emit an extra invalid output",
+    "symptom": "WA",
+    "mutation": "replace_entry_result"
+  },
+  "method_unit": {
+    "unit_id": "AC_candidate___module__",
+    "unit_kind": "AgentCoder programmer candidate unit",
+    "responsibility_map": {
+      "__module__": "AC_candidate___module__"
+    },
+    "injection_anchor": "programmer candidate selected by executor feedback",
+    "repair_flow": "test designer -> programmer candidates -> executor feedback -> bounded repair",
+    "fault_type": "wrong_answer"
+  },
+  "native_result": {
+    "record_available": false,
+    "status": null,
+    "is_solved": null,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "8a4f570204b7b76a1cb68a5c35d99f37ba8f54e7e84347e4b3e6100bd457d640",
+  "faulty_sha256": "45821a1f4b5fbc17e0c5347be7bd0c79032a4d994f788587d38dbfa7b8950b71",
+  "faulty_source": "cases/case_078_apps_0829/methods/agentcoder.py"
+}

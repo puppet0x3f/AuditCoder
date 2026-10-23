@@ -106,6 +106,13 @@ Review checklist:
 7. [Execution Order Validity] Does execution_order include all leaf nodes? Does the order satisfy dependency constraints (dependencies before dependents)?
 8. [Test Coverage] Are there at least 1 sample test and 2 boundary tests?
 9. [Reasoning Chain Auditability] Is the reasoning_chain clear and logically coherent?
+10. [CATG lifecycle integrity] Does every node have a stable commitment and
+    registered executor category, does the dependency DAG remain distinct from
+    the parent tree, and do responsibility records expose provenance,
+    validation, and ownership fields before generation?
+11. [Development checks] Are sample and planner-derived boundary checks in a
+    fixed ordered sequence with concrete string inputs/outputs? Held-out tests
+    must not be inserted into this sequence.
 
 ## Output Example
 

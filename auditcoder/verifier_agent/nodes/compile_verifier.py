@@ -21,6 +21,7 @@ def compile_verifier(state: VerifierState) -> dict:
     errors: list[str] = []
 
     tmp_path = None
+    compiled_path = None
     try:
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".py", delete=False, encoding="utf-8"
@@ -28,14 +29,20 @@ def compile_verifier(state: VerifierState) -> dict:
             f.write(source_code)
             tmp_path = f.name
 
-        py_compile.compile(tmp_path, doraise=True)
+        # Do not let py_compile choose ``/tmp/__pycache__``.  On shared
+        # workstations that directory can belong to another user, while the
+        # per-call temporary file is always writable by the current process.
+        with tempfile.NamedTemporaryFile(suffix=".pyc", delete=False) as f:
+            compiled_path = f.name
+        py_compile.compile(tmp_path, cfile=compiled_path, doraise=True)
         syntax_ok = True
-    except py_compile.PyCompileError as exc:
+    except (OSError, py_compile.PyCompileError) as exc:
         errors.append(f"语法错误: {exc}")
     finally:
-        if tmp_path:
+        for path in (tmp_path, compiled_path):
             try:
-                os.unlink(tmp_path)
+                if path:
+                    os.unlink(path)
             except OSError:
                 pass
 

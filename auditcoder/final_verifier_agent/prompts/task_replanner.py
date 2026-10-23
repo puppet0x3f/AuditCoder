@@ -29,6 +29,13 @@ solely to alter decimal formatting. A proposed formula or construction must be
 dry-run against every supplied canonical sample and every supplied invariant;
 reject the proposal if it contradicts either. Output order may be constrained
 only when the problem contract makes order semantically significant.
+When the failing case is a global wrong answer, timeout, empty output, or an
+integration-shape error, strengthen the designated core solver's hints with a
+complete end-to-end algorithm and an executable postcondition. Do not merely
+rename a helper or return a closure; the regenerated node must compute the
+value that the root prints. For directed relations state both endpoints in the
+statement's direction, and for class/method or JSON-like tasks preserve the
+declared call and nesting shape.
 
 Output format: Output only one JSON object — the improved complete task_node — without any \
 additional explanatory text.\

@@ -1,0 +1,31 @@
+{
+  "case_id": "case_037_apps_1059",
+  "problem_id": 1059,
+  "method": "codesim",
+  "common_fault": {
+    "id": "runtime_exception",
+    "description": "raise a deterministic RuntimeError at the owned entry unit",
+    "symptom": "RE",
+    "mutation": "insert_raise"
+  },
+  "method_unit": {
+    "unit_id": "CS_step_main",
+    "unit_kind": "CodeSIM plan/simulation step",
+    "responsibility_map": {
+      "main": "CS_step_main"
+    },
+    "injection_anchor": "plan step executed by final code/debug loop",
+    "repair_flow": "plan/simulation -> code generation -> bounded debug retry",
+    "fault_type": "runtime_exception"
+  },
+  "native_result": {
+    "record_available": true,
+    "status": "completed",
+    "is_solved": true,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "bb09c9e8dcc179b49729b1d58346c03003cdb9a54570d89e63a398040a160ded",
+  "faulty_sha256": "e13ee55a051425490430e9d3805e372b4229d4bca906042aa7f5909edd3cbcde",
+  "faulty_source": "cases/case_037_apps_1059/methods/codesim.py"
+}

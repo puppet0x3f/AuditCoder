@@ -1,0 +1,170 @@
+{
+  "case_id": "case_074_apps_2055",
+  "position": 74,
+  "problem_id": 2055,
+  "difficulty": "interview",
+  "url": "https://codeforces.com/problemset/problem/1373/F",
+  "question_file": "APPS/test/2055/question.txt",
+  "test_count": 8,
+  "reference_solution_index": 0,
+  "reference_source": "APPS/test/solutions.json",
+  "reference_provenance": {
+    "kind": "reference"
+  },
+  "reference_validation": {
+    "syntax_ok": true,
+    "all_passed": true,
+    "cases_run": 8,
+    "passed_count": 8,
+    "max_case_time_ms": 33.94674701848999,
+    "first_failure": null
+  },
+  "entry_anchor": {
+    "kind": "function",
+    "name": "__starting_point",
+    "line": 77,
+    "end_line": 78,
+    "selected_by": "top_level_call"
+  },
+  "mutation_validation": {
+    "syntax_ok": true,
+    "activation": {
+      "syntax_ok": true,
+      "all_passed": false,
+      "cases_run": 1,
+      "passed_count": 0,
+      "max_case_time_ms": 35.547495004720986,
+      "first_failure": {
+        "passed": false,
+        "symptom": "WA",
+        "actual": "",
+        "expected": "YES\nYES\nNO\nYES\nYES",
+        "timed_out": false,
+        "exit_code": 0,
+        "stderr": "",
+        "time_ms": 35.547495004720986,
+        "case_index": 0
+      }
+    },
+    "expected_symptom": "WA"
+  },
+  "common_fault": {
+    "id": "wrong_answer",
+    "description": "return an invalid answer or emit an extra invalid output",
+    "symptom": "WA",
+    "mutation": "replace_entry_result",
+    "same_semantics_across_methods": true,
+    "marker": "APPS_CONTROLLED_WRONG_ANSWER_2055",
+    "clean_sha256": "aa5a9825971ef0ef360fbae1cb52787ba18a835707a89660e22e42bb07f77feb",
+    "faulty_sha256": "c70322ac388719ad430934560a175e958115a441ec9abd49d57475ef70e04b18"
+  },
+  "methods": {
+    "auditcoder": {
+      "unit_id": "A_leaf___starting_point",
+      "unit_kind": "TaskPlanIR leaf / ownership-map owner",
+      "responsibility_map": {
+        "__starting_point": "A_leaf___starting_point"
+      },
+      "injection_anchor": "leaf implementation entry",
+      "repair_flow": "Trace -> Resource -> Local -> SelectScope -> bounded regeneration",
+      "fault_type": "wrong_answer",
+      "native_result": {
+        "record_available": true,
+        "status": "ok",
+        "is_solved": null,
+        "pipeline_all_passed": true,
+        "trace": null,
+        "catg": {
+          "schema_version": "catg-1.0",
+          "node_count": 2,
+          "code_owner_count": 2,
+          "registered_unit_count": 2,
+          "development_check_count": 11,
+          "responsibility_record_count": 2,
+          "evidence_record_count": 1,
+          "validation_errors": []
+        },
+        "responsibility_record_ids": [
+          "S0",
+          "S1"
+        ]
+      },
+      "fault_id": "APPS_CONTROLLED_WRONG_ANSWER_2055",
+      "faulty_source": "cases/case_074_apps_2055/methods/auditcoder.py",
+      "clean_source": "cases/case_074_apps_2055/clean.py",
+      "clean_sha256": "aa5a9825971ef0ef360fbae1cb52787ba18a835707a89660e22e42bb07f77feb",
+      "faulty_sha256": "c70322ac388719ad430934560a175e958115a441ec9abd49d57475ef70e04b18",
+      "same_semantics_as_other_methods": true
+    },
+    "codesim": {
+      "unit_id": "CS_step___starting_point",
+      "unit_kind": "CodeSIM plan/simulation step",
+      "responsibility_map": {
+        "__starting_point": "CS_step___starting_point"
+      },
+      "injection_anchor": "plan step executed by final code/debug loop",
+      "repair_flow": "plan/simulation -> code generation -> bounded debug retry",
+      "fault_type": "wrong_answer",
+      "native_result": {
+        "record_available": true,
+        "status": "completed",
+        "is_solved": true,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_WRONG_ANSWER_2055",
+      "faulty_source": "cases/case_074_apps_2055/methods/codesim.py",
+      "clean_source": "cases/case_074_apps_2055/clean.py",
+      "clean_sha256": "aa5a9825971ef0ef360fbae1cb52787ba18a835707a89660e22e42bb07f77feb",
+      "faulty_sha256": "c70322ac388719ad430934560a175e958115a441ec9abd49d57475ef70e04b18",
+      "same_semantics_as_other_methods": true
+    },
+    "mapcoder": {
+      "unit_id": "MC_map___starting_point",
+      "unit_kind": "MapCoder recalled-example/planning mapped unit",
+      "responsibility_map": {
+        "__starting_point": "MC_map___starting_point"
+      },
+      "injection_anchor": "mapped algorithm implementation unit",
+      "repair_flow": "mapping/planning -> code generation -> bounded improve retry",
+      "fault_type": "wrong_answer",
+      "native_result": {
+        "record_available": true,
+        "status": "output_truncated",
+        "is_solved": false,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_WRONG_ANSWER_2055",
+      "faulty_source": "cases/case_074_apps_2055/methods/mapcoder.py",
+      "clean_source": "cases/case_074_apps_2055/clean.py",
+      "clean_sha256": "aa5a9825971ef0ef360fbae1cb52787ba18a835707a89660e22e42bb07f77feb",
+      "faulty_sha256": "c70322ac388719ad430934560a175e958115a441ec9abd49d57475ef70e04b18",
+      "same_semantics_as_other_methods": true
+    },
+    "agentcoder": {
+      "unit_id": "AC_candidate___starting_point",
+      "unit_kind": "AgentCoder programmer candidate unit",
+      "responsibility_map": {
+        "__starting_point": "AC_candidate___starting_point"
+      },
+      "injection_anchor": "programmer candidate selected by executor feedback",
+      "repair_flow": "test designer -> programmer candidates -> executor feedback -> bounded repair",
+      "fault_type": "wrong_answer",
+      "native_result": {
+        "record_available": false,
+        "status": null,
+        "is_solved": null,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_WRONG_ANSWER_2055",
+      "faulty_source": "cases/case_074_apps_2055/methods/agentcoder.py",
+      "clean_source": "cases/case_074_apps_2055/clean.py",
+      "clean_sha256": "aa5a9825971ef0ef360fbae1cb52787ba18a835707a89660e22e42bb07f77feb",
+      "faulty_sha256": "c70322ac388719ad430934560a175e958115a441ec9abd49d57475ef70e04b18",
+      "same_semantics_as_other_methods": true
+    }
+  },
+  "question_copy": "cases/case_074_apps_2055/question.txt"
+}

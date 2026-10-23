@@ -1,0 +1,31 @@
+{
+  "case_id": "case_064_apps_1922",
+  "problem_id": 1922,
+  "method": "mapcoder",
+  "common_fault": {
+    "id": "resource_timeout",
+    "description": "insert an unbounded loop at the owned entry unit",
+    "symptom": "TLE",
+    "mutation": "insert_infinite_loop"
+  },
+  "method_unit": {
+    "unit_id": "MC_map___module__",
+    "unit_kind": "MapCoder recalled-example/planning mapped unit",
+    "responsibility_map": {
+      "__module__": "MC_map___module__"
+    },
+    "injection_anchor": "mapped algorithm implementation unit",
+    "repair_flow": "mapping/planning -> code generation -> bounded improve retry",
+    "fault_type": "resource_timeout"
+  },
+  "native_result": {
+    "record_available": true,
+    "status": "completed",
+    "is_solved": true,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "2bbc7e040f9d8d79b1fac985e9007880d78e77536895a5865c03c18cc893cb39",
+  "faulty_sha256": "f3513a48f99eccfa22882dbdcd4e9c97234bf2abe7b070d00a421aeaff1ba59b",
+  "faulty_source": "cases/case_064_apps_1922/methods/mapcoder.py"
+}

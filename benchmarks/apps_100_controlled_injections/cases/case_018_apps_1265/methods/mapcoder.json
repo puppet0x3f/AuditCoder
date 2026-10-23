@@ -1,0 +1,31 @@
+{
+  "case_id": "case_018_apps_1265",
+  "problem_id": 1265,
+  "method": "mapcoder",
+  "common_fault": {
+    "id": "wrong_answer",
+    "description": "return an invalid answer or emit an extra invalid output",
+    "symptom": "WA",
+    "mutation": "replace_entry_result"
+  },
+  "method_unit": {
+    "unit_id": "MC_map___module__",
+    "unit_kind": "MapCoder recalled-example/planning mapped unit",
+    "responsibility_map": {
+      "__module__": "MC_map___module__"
+    },
+    "injection_anchor": "mapped algorithm implementation unit",
+    "repair_flow": "mapping/planning -> code generation -> bounded improve retry",
+    "fault_type": "wrong_answer"
+  },
+  "native_result": {
+    "record_available": true,
+    "status": "completed",
+    "is_solved": true,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "6a10d5d40493f771cfff3023ae397c422c245264f86f0dffc29e85133a5fa779",
+  "faulty_sha256": "8ba1653d0be13452039cf0be3ccf5d85f9f80aa26f7a8cb201860003af90fce1",
+  "faulty_source": "cases/case_018_apps_1265/methods/mapcoder.py"
+}

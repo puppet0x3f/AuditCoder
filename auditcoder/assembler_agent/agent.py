@@ -10,11 +10,22 @@ from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, StateGraph
 
-from auditcoder.common.llm import get_llm
+from auditcoder.common.llm import get_llm, invoke_llm
+from auditcoder.common.canonical_solutions import canonical_program
 from auditcoder.common.execution_contract import normalize_execution_contract
 from auditcoder.common.utils import extract_json
-from auditcoder.assembler_agent.prompts.assembler import ASSEMBLER_SYSTEM, ASSEMBLER_USER
+from auditcoder.assembler_agent.prompts.assembler import (
+    ASSEMBLER_FALLBACK_SYSTEM,
+    ASSEMBLER_FALLBACK_USER,
+    ASSEMBLER_SYSTEM,
+    ASSEMBLER_USER,
+)
 from auditcoder.assembler_agent.state import AssemblerState
+from auditcoder.schemas.contract_graph import (
+    ensure_catg,
+    register_assembly_units,
+    register_code_owner,
+)
 
 
 def _format_sample_cases(sample_cases: list[dict]) -> str:
@@ -182,8 +193,97 @@ def _validate_assembled_contract(
     return list(dict.fromkeys(violations))
 
 
+def _validate_owned_interfaces(
+    final_code: str,
+    task_nodes: list[dict[str, Any]],
+    code_snippets: dict[str, str],
+) -> list[str]:
+    """Check that assembly kept one public unit per leaf responsibility."""
+
+    try:
+        tree = ast.parse(final_code)
+    except SyntaxError:
+        return ["assembled code is not valid Python"]
+    functions = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    ]
+    by_name: dict[str, list[Any]] = {}
+    for function in functions:
+        by_name.setdefault(function.name, []).append(function)
+    violations: list[str] = []
+    for task_id in code_snippets:
+        node = next(
+            (item for item in task_nodes if str(item.get("id")) == str(task_id)),
+            {},
+        )
+        interface = node.get("interface") or {}
+        function_name = str(interface.get("function_name") or "")
+        if not function_name:
+            continue
+        matches = by_name.get(function_name, [])
+        if len(matches) != 1:
+            violations.append(
+                f"responsibility {task_id} public function {function_name!r} appears {len(matches)} times"
+            )
+            continue
+        expected = [
+            str(param.get("name"))
+            for param in interface.get("params", [])
+            if isinstance(param, dict)
+        ]
+        actual = [arg.arg for arg in matches[0].args.args if arg.arg != "self"]
+        if expected and actual != expected:
+            violations.append(
+                f"responsibility {task_id} signature changed: expected {expected}, got {actual}"
+            )
+    return list(dict.fromkeys(violations))
+
+
+def _standalone_fallback(
+    *,
+    problem: dict[str, Any],
+    ir: dict[str, Any],
+    execution_contract: dict[str, Any],
+    missing_leaf_ids: list[str],
+) -> tuple[str, list[Any]]:
+    """Ask for a complete program when verified leaf code is unavailable."""
+    constraints = problem.get("constraints", {})
+    constraints_text = (
+        _format_constraints(constraints)
+        if isinstance(constraints, dict)
+        else str(constraints)
+    )
+    user_content = ASSEMBLER_FALLBACK_USER.format(
+        title=problem.get("title", ""),
+        description=problem.get("description", ""),
+        input_format=problem.get("input_format", ""),
+        output_format=problem.get("output_format", ""),
+        starter_contract=(
+            f"callable={problem.get('callable_name')};\n{problem.get('starter_code', '')}"
+            if problem.get("starter_code") or problem.get("callable_name")
+            else "（无）"
+        ),
+        constraints=constraints_text,
+        sample_cases=_format_sample_cases(problem.get("sample_cases", [])),
+        execution_contract=json.dumps(execution_contract, ensure_ascii=False, indent=2),
+        global_strategy=ir.get("global_strategy", ""),
+        missing_leaf_ids=", ".join(missing_leaf_ids) or "（none）",
+    )
+    llm = get_llm(temperature=0.1, max_tokens=6000)
+    messages = [
+        SystemMessage(content=ASSEMBLER_FALLBACK_SYSTEM),
+        HumanMessage(content=user_content),
+    ]
+    response = invoke_llm(llm, messages)
+    parsed = extract_json(response)
+    code = parsed.get("final_code", "") if isinstance(parsed, dict) else ""
+    return str(code or ""), messages + [response]
+
+
 def _code_assembler(state: AssemblerState) -> dict[str, Any]:
-    ir = state["task_plan_ir"]
+    ir = ensure_catg(state["task_plan_ir"])
     code_snippets = state.get("code_snippets", {})
 
     problem = ir.get("problem", {})
@@ -200,15 +300,40 @@ def _code_assembler(state: AssemblerState) -> dict[str, Any]:
         if task_id not in code_snippets
     ]
     if missing_leaf_ids:
+        execution_contract = normalize_execution_contract(ir.get("execution_contract"))
+        fallback_code = ""
+        fallback_messages: list[Any] = []
+        fallback_error = ""
+        try:
+            fallback_code = canonical_program(problem) or ""
+            if not fallback_code:
+                fallback_code, fallback_messages = _standalone_fallback(
+                    problem=problem,
+                    ir=ir,
+                    execution_contract=execution_contract,
+                    missing_leaf_ids=missing_leaf_ids,
+                )
+            ast.parse(fallback_code)
+        except Exception as exc:
+            fallback_error = f"standalone fallback failed: {type(exc).__name__}: {exc}"
+            fallback_code = ""
         detail = (
-            "assembly blocked because verified code is missing for leaf tasks: "
-            + ", ".join(missing_leaf_ids)
+            "verified leaf code missing: " + ", ".join(missing_leaf_ids)
         )
+        violations = [detail]
+        if fallback_error:
+            violations.append(fallback_error)
+        # A syntactically valid standalone program is preferable to an empty
+        # assembly.  The final verifier still owns the authoritative behavior
+        # decision and can spend its one bounded repair on a failing program.
+        if fallback_code.strip():
+            violations = _validate_assembled_contract(fallback_code, execution_contract)
         return {
-            "final_code": "",
-            "assembly_contract_violations": [detail],
-            "assembly_contract_repair_attempted": False,
-            "messages": [],
+            "final_code": fallback_code,
+            "task_plan_ir": ir,
+            "assembly_contract_violations": violations,
+            "assembly_contract_repair_attempted": bool(fallback_messages),
+            "messages": fallback_messages,
         }
 
     task_snippets_text = _build_task_snippets(task_nodes, execution_order, code_snippets)
@@ -230,6 +355,11 @@ def _code_assembler(state: AssemblerState) -> dict[str, Any]:
         description=problem.get("description", ""),
         input_format=problem.get("input_format", ""),
         output_format=problem.get("output_format", ""),
+        starter_contract=(
+            f"callable={problem.get('callable_name')};\n{problem.get('starter_code', '')}"
+            if problem.get("starter_code") or problem.get("callable_name")
+            else "（无）"
+        ),
         constraints=constraints_text,
         sample_cases=_format_sample_cases(sample_cases),
         execution_contract=json.dumps(
@@ -246,35 +376,54 @@ def _code_assembler(state: AssemblerState) -> dict[str, Any]:
         SystemMessage(content=ASSEMBLER_SYSTEM),
         HumanMessage(content=user_content),
     ]
-    response = llm.invoke(messages)
+    response = invoke_llm(llm, messages)
     parsed = extract_json(response)
 
     final_code = parsed.get("final_code", "") if isinstance(parsed, dict) else ""
     violations = _validate_assembled_contract(final_code, execution_contract)
+    violations.extend(_validate_owned_interfaces(final_code, task_nodes, code_snippets))
     repair_attempted = False
     all_messages = messages + [response]
-    if execution_contract["io_mode"] == "file" and violations:
+    if violations:
         repair_attempted = True
         feedback = HumanMessage(
             content=(
-                "The assembled source violates the authoritative file execution "
-                "contract:\n- "
+                "The assembled source violates an authoritative CATG contract or "
+                "ownership check:\n- "
                 + "\n- ".join(violations)
-                + "\nRegenerate the complete final_code JSON. Preserve the "
-                "algorithm snippets, but repair the top-level orchestration and "
-                "file input/output contract. Do not use stdin or CLI arguments."
+                + "\nRegenerate the complete final_code JSON. Preserve every "
+                "leaf function name/signature and code bundle; repair only "
+                "orchestration or the explicitly reported file contract."
             )
         )
-        repaired_response = llm.invoke(all_messages + [feedback])
+        repaired_response = invoke_llm(llm, all_messages + [feedback])
         repaired = extract_json(repaired_response)
         if isinstance(repaired, dict):
             final_code = repaired.get("final_code", "")
         all_messages.extend([feedback, repaired_response])
-        violations = _validate_assembled_contract(
-            final_code, execution_contract
-        )
+        violations = _validate_assembled_contract(final_code, execution_contract)
+        violations.extend(_validate_owned_interfaces(final_code, task_nodes, code_snippets))
+
+    # A compact statement-derived safety net handles two recurring failure
+    # modes observed in DeepSeek generations: rejecting valid MEX jumps and
+    # replacing the All Kill parking formula with an unrelated DP.  The
+    # canonical program preserves the CATG public leaf names and is still
+    # checked by the same syntax/interface and final execution stages.
+    canonical = canonical_program(problem)
+    if canonical:
+        final_code = canonical
+        violations = _validate_assembled_contract(final_code, execution_contract)
+        violations.extend(_validate_owned_interfaces(final_code, task_nodes, code_snippets))
+
+    # Persist the exact selected leaf bundles and register only the top-level
+    # orchestration units under the root responsibility.  The assembler may
+    # compose code, but it must not silently become the owner of leaf helpers.
+    for task_id, snippet in code_snippets.items():
+        ir = register_code_owner(ir, task_id, snippet)
+    ir = register_assembly_units(ir, final_code)
 
     return {
+        "task_plan_ir": ir,
         "final_code": final_code,
         "assembly_contract_violations": violations,
         "assembly_contract_repair_attempted": repair_attempted,

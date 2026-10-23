@@ -11,8 +11,9 @@ import json
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from auditcoder.plan_agent.llm import get_llm
+from auditcoder.plan_agent.llm import get_llm, invoke_llm
 from auditcoder.plan_agent.nodes._utils import extract_json
+from auditcoder.common.problem_guidance import strategy_card
 from auditcoder.plan_agent.prompts.thinker import DEEP_THINKER_REPLAN_USER, DEEP_THINKER_SYSTEM, DEEP_THINKER_USER
 from auditcoder.plan_agent.state import PlanState
 
@@ -85,13 +86,20 @@ def deep_thinker(state: PlanState) -> dict:
         "\n\nOutput must be concise: at most 2 surface_traps, 3 structural_insights, "
         "2 solution families, 2 critical_questions, and each string under 35 words."
     )
+    card = strategy_card(state["problem_structured"])
+    if card:
+        user_content += (
+            "\n\n## Deterministic audit card (check against the statement and samples)\n"
+            + card
+            + "\nTreat this as a falsifiable hint: derive it, dry-run it, and explicitly reject it if it conflicts with the statement."
+        )
 
     messages = [
         SystemMessage(content=DEEP_THINKER_SYSTEM),
         HumanMessage(content=user_content),
     ]
     try:
-        response = llm.invoke(messages)
+        response = invoke_llm(llm, messages)
         parsed = extract_json(response)
     except Exception as exc:
         fallback = _fallback_deep_thinking(

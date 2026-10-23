@@ -5,11 +5,16 @@ from __future__ import annotations
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, StateGraph
 
-from auditcoder.common.llm import get_llm
+from auditcoder.common.llm import get_llm, invoke_llm
 from auditcoder.common.utils import extract_json
 from auditcoder.algo_agents.prompts.string import STRING_AGENT_SYSTEM, STRING_AGENT_USER
 from auditcoder.algo_agents.state import AlgoAgentState
-from auditcoder.algo_agents._utils import format_feedback, format_interface, format_slots
+from auditcoder.algo_agents._utils import (
+    format_contract_guardrails,
+    format_feedback,
+    format_interface,
+    format_slots,
+)
 
 
 def _string_code_generator(state: AlgoAgentState) -> dict:
@@ -34,17 +39,18 @@ def _string_code_generator(state: AlgoAgentState) -> dict:
         problem_description=problem_description,
         global_strategy=global_strategy,
     )
+    user_content += "\n\n" + format_contract_guardrails(task_node, ir)
 
     feedback_text = format_feedback(state.get("feedback"))
     if feedback_text:
         user_content = user_content + "\n" + feedback_text
 
-    llm = get_llm(temperature=0.2, max_tokens=4096)
+    llm = get_llm(temperature=0.2, max_tokens=3500)
     messages = [
         SystemMessage(content=STRING_AGENT_SYSTEM),
         HumanMessage(content=user_content),
     ]
-    response = llm.invoke(messages)
+    response = invoke_llm(llm, messages)
     parsed = extract_json(response)
 
     code_snippet = parsed.get("code_snippet", "") if isinstance(parsed, dict) else ""

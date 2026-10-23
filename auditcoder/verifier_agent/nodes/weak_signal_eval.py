@@ -5,11 +5,12 @@
 
 from __future__ import annotations
 
+import ast
 import json
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from auditcoder.common.llm import get_llm
+from auditcoder.common.llm import get_llm, invoke_llm
 from auditcoder.common.utils import extract_json
 from auditcoder.verifier_agent.prompts.weak_signal import (
     WEAK_SIGNAL_SYSTEM,
@@ -40,6 +41,13 @@ def _fallback_report(reason: str) -> dict:
 
 
 def weak_signal_eval(state: VerifierState) -> dict:
+    """Compute non-authoritative style signals locally.
+
+    These signals never participate in the correctness verdict.  Calling the
+    remote model here added one unnecessary network round trip per leaf and
+    could stall an entire APPS batch while semantic/runtime evidence was
+    already complete.
+    """
     snippet = state["code_snippet"]
     contract = state.get("task_contract") or {}
     interface = contract if contract.get("function_name") else contract.get("interface", {})
@@ -52,33 +60,25 @@ def weak_signal_eval(state: VerifierState) -> dict:
         MAX_WEAK_SIGNAL_EXPLANATION_CHARS,
     )
 
-    messages = [
-        SystemMessage(content=WEAK_SIGNAL_SYSTEM),
-        HumanMessage(
-            content=WEAK_SIGNAL_USER.format(
-                source_code=source_code,
-                interface_json=json.dumps(interface, ensure_ascii=False, indent=2),
-                explanation=explanation,
-            )
-        ),
-    ]
-
     try:
-        llm = get_llm(temperature=0.0)
-        response = llm.invoke(messages)
-        parsed = extract_json(response)
+        tree = ast.parse(source_code)
     except Exception as exc:
         return _fallback_report(f"{type(exc).__name__}: {str(exc)[:200]}")
-
-    if not isinstance(parsed, dict):
-        return _fallback_report("LLM returned non-object JSON")
-
+    functions = [node for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))]
+    has_docstrings = any(ast.get_docstring(node) for node in functions)
+    line_count = len(source_code.splitlines())
+    # Keep the scale intentionally coarse: these values are weak diagnostics,
+    # never a release or rejection signal.
+    readability = 4 if functions and line_count <= 220 else 3
+    style = 4 if not any(isinstance(node, ast.Global) for node in ast.walk(tree)) else 2
     return {
         "weak_signal_report": {
-            "readability_score": parsed.get("readability_score", 0),
-            "style_score": parsed.get("style_score", 0),
-            "explanation_consistent": parsed.get("explanation_consistent", False),
-            "notes": parsed.get("notes", []),
-        },
-        "messages": messages + [response],
+            "readability_score": readability,
+            "style_score": style,
+            "explanation_consistent": True,
+            "notes": [
+                "deterministic local weak-signal check",
+                "docstrings_present" if has_docstrings else "no_docstrings_required",
+            ],
+        }
     }

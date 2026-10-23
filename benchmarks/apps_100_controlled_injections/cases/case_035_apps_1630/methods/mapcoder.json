@@ -1,0 +1,31 @@
+{
+  "case_id": "case_035_apps_1630",
+  "problem_id": 1630,
+  "method": "mapcoder",
+  "common_fault": {
+    "id": "interface_contract",
+    "description": "violate the unit input/output contract with a TypeError",
+    "symptom": "contract_error",
+    "mutation": "insert_contract_exception"
+  },
+  "method_unit": {
+    "unit_id": "MC_map___module__",
+    "unit_kind": "MapCoder recalled-example/planning mapped unit",
+    "responsibility_map": {
+      "__module__": "MC_map___module__"
+    },
+    "injection_anchor": "mapped algorithm implementation unit",
+    "repair_flow": "mapping/planning -> code generation -> bounded improve retry",
+    "fault_type": "interface_contract"
+  },
+  "native_result": {
+    "record_available": true,
+    "status": "completed",
+    "is_solved": false,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "3e15cd802eddad9a2adf63b3404901335fdc3ff36ca02b0a148195507f80bd56",
+  "faulty_sha256": "14f04734fedc74ca76c83eafdfe5f5fab5102060f235dcb11437b25c66594469",
+  "faulty_source": "cases/case_035_apps_1630/methods/mapcoder.py"
+}

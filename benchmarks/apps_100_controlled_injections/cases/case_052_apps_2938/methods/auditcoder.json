@@ -1,0 +1,48 @@
+{
+  "case_id": "case_052_apps_2938",
+  "problem_id": 2938,
+  "method": "auditcoder",
+  "common_fault": {
+    "id": "resource_timeout",
+    "description": "insert an unbounded loop at the owned entry unit",
+    "symptom": "TLE",
+    "mutation": "insert_infinite_loop"
+  },
+  "method_unit": {
+    "unit_id": "A_leaf_solve",
+    "unit_kind": "TaskPlanIR leaf / ownership-map owner",
+    "responsibility_map": {
+      "solve": "A_leaf_solve"
+    },
+    "injection_anchor": "leaf implementation entry",
+    "repair_flow": "Trace -> Resource -> Local -> SelectScope -> bounded regeneration",
+    "fault_type": "resource_timeout"
+  },
+  "native_result": {
+    "record_available": true,
+    "status": "ok",
+    "is_solved": null,
+    "pipeline_all_passed": true,
+    "trace": null,
+    "catg": {
+      "schema_version": "catg-1.0",
+      "node_count": 5,
+      "code_owner_count": 5,
+      "registered_unit_count": 12,
+      "development_check_count": 8,
+      "responsibility_record_count": 5,
+      "evidence_record_count": 5,
+      "validation_errors": []
+    },
+    "responsibility_record_ids": [
+      "S0",
+      "S1",
+      "S1_1",
+      "S1_2",
+      "S1_3"
+    ]
+  },
+  "clean_sha256": "a20f0dff132859f979919f4c82e537b09284ecfe6839d69b71bbe1ef6d1ef0da",
+  "faulty_sha256": "f3898db8d269f2640e98ad3bfee5d7f65782708149eea57a5742de68f22f6ab7",
+  "faulty_source": "cases/case_052_apps_2938/methods/auditcoder.py"
+}

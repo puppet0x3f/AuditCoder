@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from auditcoder.plan_agent.llm import get_llm
+from auditcoder.plan_agent.llm import get_llm, invoke_llm
 from auditcoder.plan_agent.nodes._utils import extract_json
 from auditcoder.plan_agent.prompts.parser import (
     PROBLEM_PARSER_SYSTEM,
@@ -21,7 +21,7 @@ def problem_parser(state: PlanState) -> dict:
             content=PROBLEM_PARSER_USER.format(problem_raw=state["problem_raw"])
         ),
     ]
-    response = llm.invoke(messages)
+    response = invoke_llm(llm, messages)
     parsed = extract_json(response)
 
     return {"problem_structured": parsed, "messages": messages + [response]}

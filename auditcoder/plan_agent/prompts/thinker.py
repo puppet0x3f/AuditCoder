@@ -29,6 +29,13 @@ Your output must contain:
 - Test the leading candidate family against every supplied sample and construct
   one minimal counterexample to its key greedy or ordering assumption. A
   candidate contradicted by a sample must be listed as a surface trap.
+- For every candidate that survives, state a falsifiable invariant and a
+  smallest exhaustive check (including parity, endpoint, orientation, or
+  stopping-event details when relevant). A familiar algorithm name is not a
+  proof; reject it when the check disagrees.
+- Separate a wrong strategy from a wrong implementation: if the complexity or
+  mathematical event is wrong, replace the family before discussing code-level
+  fixes. Preserve the complete end-to-end computation in the core leaf.
 - The output is consumed by constraint_analyzer and algorithm_selector — give them the reasoning they need \
   to make confident decisions.
 

@@ -3,6 +3,6 @@
 Re-exports from auditcoder.common.llm for backward compatibility.
 """
 
-from auditcoder.common.llm import get_llm
+from auditcoder.common.llm import get_llm, invoke_llm
 
-__all__ = ["get_llm"]
+__all__ = ["get_llm", "invoke_llm"]

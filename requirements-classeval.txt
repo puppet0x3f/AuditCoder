@@ -1,0 +1,12 @@
+-r requirements.txt
+# Libraries imported by the ClassEval tasks and their unittest suites.
+beautifulsoup4>=4.12
+lxml>=5
+PyPDF2<3
+python-docx>=1.1
+gensim>=4.3
+nltk>=3.9
+reportlab>=4
+openpyxl>=3.1
+pandas>=2.1
+Pillow>=10

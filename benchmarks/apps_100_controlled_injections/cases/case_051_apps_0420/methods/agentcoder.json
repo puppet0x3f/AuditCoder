@@ -1,0 +1,31 @@
+{
+  "case_id": "case_051_apps_0420",
+  "problem_id": 420,
+  "method": "agentcoder",
+  "common_fault": {
+    "id": "interface_contract",
+    "description": "violate the unit input/output contract with a TypeError",
+    "symptom": "contract_error",
+    "mutation": "insert_contract_exception"
+  },
+  "method_unit": {
+    "unit_id": "AC_candidate___module__",
+    "unit_kind": "AgentCoder programmer candidate unit",
+    "responsibility_map": {
+      "__module__": "AC_candidate___module__"
+    },
+    "injection_anchor": "programmer candidate selected by executor feedback",
+    "repair_flow": "test designer -> programmer candidates -> executor feedback -> bounded repair",
+    "fault_type": "interface_contract"
+  },
+  "native_result": {
+    "record_available": false,
+    "status": null,
+    "is_solved": null,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "18759ed59af454af5a2ce36153c13308cfc959065cce75e812ccb399f83239de",
+  "faulty_sha256": "f95e447bb69dee4ee56319c210acdb08fb8fb5ddc045a42107dba376b670675d",
+  "faulty_source": "cases/case_051_apps_0420/methods/agentcoder.py"
+}

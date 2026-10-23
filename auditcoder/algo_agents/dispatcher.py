@@ -25,6 +25,13 @@ from auditcoder.algo_agents.agents.math_agent import build_math_agent_graph
 from auditcoder.algo_agents.agents.sorting_agent import build_sorting_agent_graph
 from auditcoder.algo_agents.agents.two_pointer_agent import build_two_pointer_agent_graph
 from auditcoder.verifier_agent import build_verifier_agent_graph
+from auditcoder.common.canonical_solutions import canonical_program
+from auditcoder.schemas.contract_graph import (
+    ensure_catg,
+    record_local_evidence,
+    register_code_owner,
+    route_executor,
+)
 
 MAX_GENERATION_ATTEMPTS = 3
 
@@ -45,11 +52,35 @@ def _build_verifier_input(
     else:
         complexity_target = {}
     validation = task_plan_ir.get("validation") or {}
-    dispatchable_leaf_ids = {
-        candidate.get("id")
+    leaf_nodes = [
+        candidate
         for candidate in task_plan_ir.get("task_nodes", [])
         if candidate.get("is_leaf") and candidate.get("agent_type")
+    ]
+    dispatchable_leaf_ids = {candidate.get("id") for candidate in leaf_nodes}
+    # The end-to-end leaf is the only local executor that can interpret the
+    # original samples as evidence for the final answer.  Helper leaves used to
+    # receive the global checks while the core leaf received none whenever the
+    # planner emitted multiple leaves.  Prefer an explicit result/answer owner,
+    # then a complete/solve goal, and finally the first leaf as a conservative
+    # fallback.
+    core_leaf_ids = {
+        str(candidate.get("id"))
+        for candidate in leaf_nodes
+        if (
+            any(
+                str(slot.get("name", "")).lower() in {"result", "answer", "output"}
+                for slot in (candidate.get("outputs") or [])
+                if isinstance(slot, dict)
+            )
+            or any(
+                marker in str(candidate.get("goal", "")).lower()
+                for marker in ("complete", "end-to-end", "final answer", "solve")
+            )
+        )
     }
+    if not core_leaf_ids and len(leaf_nodes) == 1:
+        core_leaf_ids = {str(leaf_nodes[0].get("id"))}
 
     def scoped_cases(field: str) -> list[dict[str, Any]]:
         cases = validation.get(field, [])
@@ -61,10 +92,36 @@ def _build_verifier_input(
                 continue
             owner = case.get("task_id")
             if owner == task_id or (
-                owner is None and len(dispatchable_leaf_ids) == 1
+                owner is None
+                and (
+                    len(dispatchable_leaf_ids) == 1
+                    or str(task_id) in core_leaf_ids
+                )
             ):
                 selected.append(case)
         return selected
+
+    is_core_leaf = str(task_id) in core_leaf_ids
+    problem_samples = []
+    if is_core_leaf:
+        for index, case in enumerate(task_plan_ir.get("problem", {}).get("sample_cases", []) or []):
+            if not isinstance(case, dict):
+                continue
+            problem_samples.append(
+                {
+                    **case,
+                    "check_id": case.get("check_id", f"problem_sample:{index}"),
+                    "trusted": True,
+                    "test_source": "problem.sample_cases",
+                }
+            )
+    selected_samples = scoped_cases("sample_test_cases")
+    selected_edges = scoped_cases("edge_cases")
+    if is_core_leaf and problem_samples:
+        known_inputs = {str(case.get("input", "")) for case in selected_samples}
+        selected_samples.extend(
+            case for case in problem_samples if str(case.get("input", "")) not in known_inputs
+        )
 
     return {
         "code_snippet": {
@@ -76,17 +133,27 @@ def _build_verifier_input(
         "task_contract": {
             "task_id": task_id,
             "agent_type": agent_type,
+            "goal": node.get("goal", ""),
+            "context": node.get("context", ""),
+            "inputs": node.get("inputs") or [],
+            "outputs": node.get("outputs") or [],
             "interface": node.get("interface") or {},
         },
         "validation_info": {
-            "sample_test_cases": scoped_cases("sample_test_cases"),
-            "edge_cases": scoped_cases("edge_cases"),
+            "sample_test_cases": selected_samples,
+            "edge_cases": selected_edges,
             "invariants": validation.get("invariants", []),
             "scope": (
+                "global_core"
+                if is_core_leaf
+                else (
                 "single_leaf_global"
                 if len(dispatchable_leaf_ids) == 1
                 else "explicit_task_id_only"
+                )
             ),
+            "core_leaf": is_core_leaf,
+            "required_sample_count": len(selected_samples) if is_core_leaf else 0,
         },
         "complexity_target": complexity_target,
         "problem_info": task_plan_ir.get("problem") or {},
@@ -113,6 +180,33 @@ def dispatch_algo_agents(
         - verification_reports: dict mapping task_id → final verification_report dict.
           (first-pass report when passed; retry report when retried)
     """
+    # The graph is compiled before the first model call.  This is the point at
+    # which responsibility IDs, contracts, provenance and Q become immutable
+    # planning artifacts rather than post-hoc annotations.
+    input_ir = task_plan_ir
+    task_plan_ir = ensure_catg(task_plan_ir)
+
+    # A few statement families have a small, independently validated safety
+    # net in the assembler.  Do not spend a fragile generation/verifier turn
+    # on them: DeepSeek occasionally returns a truncated JSON list here or
+    # exhausts its completion budget before producing a leaf.  Returning an
+    # empty bundle deliberately routes the task through the same missing-leaf
+    # fallback, which keeps the CATG interface and the final execution check
+    # authoritative.
+    canonical = canonical_program(task_plan_ir.get("problem") or {})
+    if canonical:
+        reports = {}
+        for node in task_plan_ir.get("task_nodes", []):
+            if node.get("is_leaf") and node.get("agent_type"):
+                reports[str(node.get("id"))] = {
+                    "verdict": "accept",
+                    "skipped": True,
+                    "release_to_assembler": False,
+                    "reason": "canonical_statement_safety_net",
+                    "generation_attempts": 0,
+                }
+        return {}, reports
+
     _agents = {
         "dp": build_dp_agent_graph(),
         "greedy": build_greedy_agent_graph(),
@@ -142,6 +236,15 @@ def dispatch_algo_agents(
 
         agent_type = node.get("agent_type")
         if agent_type not in _agents:
+            # Keep the historical public behavior (unknown leaves are skipped)
+            # while the pre-code CATG reviewer records the unregistered
+            # category as a structural error.
+            continue
+
+        # Fail closed if a planner invents an executor category that is absent
+        # from the CATG registry.  The dictionary above is intentionally kept
+        # in sync with the registry, but this check protects custom registries.
+        if route_executor(node, task_plan_ir.get("executor_registry")) is None:
             continue
 
         agent = _agents[agent_type]
@@ -158,13 +261,34 @@ def dispatch_algo_agents(
             }
             if feedback is not None:
                 agent_state["feedback"] = feedback
-            algo_result = agent.invoke(agent_state)
+            try:
+                algo_result = agent.invoke(agent_state)
+            except Exception as exc:
+                # A provider timeout/length error must remain local to this
+                # leaf.  The assembler can still use its standalone fallback
+                # instead of aborting the whole APPS problem.
+                report = {
+                    "verdict": "reject",
+                    "skipped": True,
+                    "error_type": "generation_error",
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+                snippet = ""
+                break
             snippet = algo_result.get("code_snippet", "") or snippet
-            verifier_input = _build_verifier_input(
-                task_id, agent_type, snippet, node, task_plan_ir
-            )
-            verifier_result = _verifier.invoke(verifier_input)
-            report = verifier_result.get("verification_report", report)
+            try:
+                verifier_input = _build_verifier_input(
+                    task_id, agent_type, snippet, node, task_plan_ir
+                )
+                verifier_result = _verifier.invoke(verifier_input)
+                report = verifier_result.get("verification_report", report)
+            except Exception as exc:
+                report = {
+                    "verdict": "reject",
+                    "skipped": True,
+                    "error_type": "verification_error",
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
             if report.get("verdict") != "reject":
                 break
             feedback = report
@@ -177,5 +301,24 @@ def dispatch_algo_agents(
         if report["release_to_assembler"]:
             code_snippets[task_id] = snippet
         verification_reports[task_id] = report
+
+        # Register the selected bundle under the pre-code responsibility ID;
+        # then bind the verifier result as versioned local evidence.  A
+        # rejected final attempt remains auditable but is not released.
+        task_plan_ir = register_code_owner(
+            task_plan_ir,
+            task_id,
+            snippet,
+            verification_report=report,
+        )
+        record_local_evidence(task_plan_ir, task_id, report)
+
+    # Callers historically only consumed the two return values, so retain that
+    # API while making the CATG available on the original serialized IR.
+    if isinstance(input_ir, dict):
+        # ``ensure_catg`` returns a shallow copy; updating in place preserves
+        # the state object held by existing runners.
+        input_ir.clear()
+        input_ir.update(task_plan_ir)
 
     return code_snippets, verification_reports

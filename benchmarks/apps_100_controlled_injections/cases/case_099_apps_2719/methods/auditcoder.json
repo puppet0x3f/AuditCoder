@@ -1,0 +1,48 @@
+{
+  "case_id": "case_099_apps_2719",
+  "problem_id": 2719,
+  "method": "auditcoder",
+  "common_fault": {
+    "id": "interface_contract",
+    "description": "violate the unit input/output contract with a TypeError",
+    "symptom": "contract_error",
+    "mutation": "insert_contract_exception"
+  },
+  "method_unit": {
+    "unit_id": "A_leaf_main",
+    "unit_kind": "TaskPlanIR leaf / ownership-map owner",
+    "responsibility_map": {
+      "main": "A_leaf_main"
+    },
+    "injection_anchor": "leaf implementation entry",
+    "repair_flow": "Trace -> Resource -> Local -> SelectScope -> bounded regeneration",
+    "fault_type": "interface_contract"
+  },
+  "native_result": {
+    "record_available": true,
+    "status": "ok",
+    "is_solved": null,
+    "pipeline_all_passed": true,
+    "trace": null,
+    "catg": {
+      "schema_version": "catg-1.0",
+      "node_count": 5,
+      "code_owner_count": 5,
+      "registered_unit_count": 2,
+      "development_check_count": 9,
+      "responsibility_record_count": 5,
+      "evidence_record_count": 1,
+      "validation_errors": []
+    },
+    "responsibility_record_ids": [
+      "S0",
+      "S1",
+      "S1_1",
+      "S1_2",
+      "S1_3"
+    ]
+  },
+  "clean_sha256": "d03757435dd823efc5bec9e9b68b5cc4fc197cec417c9e163e45286e2bc3eb1e",
+  "faulty_sha256": "042dd8088bb6782554346217bc5ef3ff201c7fcd7a9d0b732b0c14568c993f13",
+  "faulty_source": "cases/case_099_apps_2719/methods/auditcoder.py"
+}

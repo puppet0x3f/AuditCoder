@@ -17,6 +17,7 @@ from auditcoder.algo_agents.agents.string_agent import build_string_agent_graph
 from auditcoder.algo_agents.agents.two_pointer_agent import build_two_pointer_agent_graph
 from auditcoder.algo_agents.agents.union_find_agent import build_union_find_agent_graph
 from auditcoder.final_verifier_agent.state import FinalVerifierState
+from auditcoder.schemas.contract_graph import ensure_catg, register_code_owner
 
 _AGENT_BUILDERS = {
     "dp": build_dp_agent_graph,
@@ -36,23 +37,88 @@ _AGENT_BUILDERS = {
 
 def algo_retrier(state: FinalVerifierState) -> dict[str, Any]:
     updated_task_node = state.get("updated_task_node") or {}
-    task_plan_ir = state.get("task_plan_ir", {})
+    task_plan_ir = ensure_catg(state.get("task_plan_ir", {}))
 
-    task_id: str = updated_task_node.get("id", "")
-    agent_type: str = updated_task_node.get("agent_type", "")
-
-    builder = _AGENT_BUILDERS.get(agent_type)
-    if builder is None:
-        return {}
-
-    agent = builder()
-    result = agent.invoke({"task_node": updated_task_node, "task_plan_ir": task_plan_ir})
-    snippet: str = result.get("code_snippet", "")
-
-    if not snippet:
-        return {}
+    # Branch replanning can return more than one replacement node.  The
+    # deterministic wrapper still limits generation to the declared region;
+    # frozen nodes never enter this loop.
+    replacement_nodes = state.get("updated_task_nodes") or {}
+    if not replacement_nodes and updated_task_node:
+        replacement_nodes = {updated_task_node.get("id", ""): updated_task_node}
 
     code_snippets = dict(state.get("code_snippets") or {})
-    code_snippets[task_id] = snippet
+    # The bounded retry must see the concrete global witness.  Previously the
+    # retrier only received the replanned node, so it could regenerate the
+    # same algorithm without knowing which input failed, whether the failure
+    # was a timeout, or which output contract was violated.
+    location = state.get("error_location") or {}
+    failing = location.get("failing_case") or location.get("anchor") or {}
+    feedback = {
+        "verdict": "reject",
+        "summary": (
+            f"global {location.get('error_type', 'verification')} failure: "
+            f"{location.get('detail', '')}"
+        ).strip(),
+        "strong_signals": {
+            "compile_ok": True,
+            "sample_tests_passed": False,
+            "bruteforce_match": False,
+            "resource_ok": location.get("error_type") not in {"timeout", "memory_error"},
+        },
+        "medium_signals": {
+            "contract_violations": [],
+        },
+        "counterexample": {
+            "minimal_input": failing.get("input", ""),
+            "expected_output": failing.get("expected", ""),
+            "actual_output": failing.get("actual", ""),
+            "error_category": location.get("error_type", "unknown"),
+            "suspected_reason": location.get("rule", location.get("method", "")),
+        },
+    }
+    generated: list[str] = []
+    for task_id, task_node in replacement_nodes.items():
+        task_id = str(task_id)
+        agent_type: str = str(task_node.get("agent_type", ""))
 
-    return {"code_snippets": code_snippets}
+        builder = _AGENT_BUILDERS.get(agent_type)
+        if builder is None:
+            continue
+
+        agent = builder()
+        result = agent.invoke(
+            {
+                "task_node": task_node,
+                "task_plan_ir": task_plan_ir,
+                "feedback": feedback,
+            }
+        )
+        snippet: str = result.get("code_snippet", "")
+        if not snippet:
+            continue
+        code_snippets[task_id] = snippet
+        task_plan_ir = register_code_owner(task_plan_ir, task_id, snippet)
+        generated.append(task_id)
+
+    if not generated:
+        if replacement_nodes and all(
+            str(node.get("agent_type", "")) not in _AGENT_BUILDERS
+            for node in replacement_nodes.values()
+        ):
+            # Preserve the historical API for an unregistered executor.
+            return {}
+        return {
+            "candidate_code_snippets": dict(code_snippets),
+            "task_plan_ir": task_plan_ir,
+            "repair_generation": {"status": "no_code_generated"},
+        }
+
+    return {
+        "task_plan_ir": task_plan_ir,
+        "code_snippets": code_snippets,
+        "candidate_code_snippets": dict(code_snippets),
+        "repair_generation": {
+            "status": "generated",
+            "generated_nodes": generated,
+        },
+    }

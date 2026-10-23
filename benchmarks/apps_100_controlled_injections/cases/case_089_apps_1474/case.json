@@ -1,0 +1,171 @@
+{
+  "case_id": "case_089_apps_1474",
+  "position": 89,
+  "problem_id": 1474,
+  "difficulty": "interview",
+  "url": "https://codeforces.com/problemset/problem/659/G",
+  "question_file": "APPS/test/1474/question.txt",
+  "test_count": 16,
+  "reference_solution_index": 0,
+  "reference_source": "APPS/test/solutions.json",
+  "reference_provenance": {
+    "kind": "reference"
+  },
+  "reference_validation": {
+    "syntax_ok": true,
+    "all_passed": true,
+    "cases_run": 16,
+    "passed_count": 16,
+    "max_case_time_ms": 32.454742991831154,
+    "first_failure": null
+  },
+  "entry_anchor": {
+    "kind": "module",
+    "name": "__module__",
+    "line": 1,
+    "end_line": 1,
+    "selected_by": "module_fallback"
+  },
+  "mutation_validation": {
+    "syntax_ok": true,
+    "activation": {
+      "syntax_ok": true,
+      "all_passed": false,
+      "cases_run": 1,
+      "passed_count": 0,
+      "max_case_time_ms": 32.92817500187084,
+      "first_failure": {
+        "passed": false,
+        "symptom": "RE",
+        "actual": "",
+        "expected": "0",
+        "timed_out": false,
+        "exit_code": 1,
+        "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    raise RuntimeError('APPS_CONTROLLED_RUNTIME_EXCEPTION_1474')\nRuntimeError: APPS_CONTROLLED_RUNTIME_EXCEPTION_1474\n",
+        "time_ms": 32.92817500187084,
+        "case_index": 0
+      }
+    },
+    "expected_symptom": "RE"
+  },
+  "common_fault": {
+    "id": "runtime_exception",
+    "description": "raise a deterministic RuntimeError at the owned entry unit",
+    "symptom": "RE",
+    "mutation": "insert_raise",
+    "same_semantics_across_methods": true,
+    "marker": "APPS_CONTROLLED_RUNTIME_EXCEPTION_1474",
+    "clean_sha256": "6b3191dcaee38904a759fb445e253f170e2d051de2bc7d7ddb3f9ae2329168b8",
+    "faulty_sha256": "91410da3ae8c4d900c872cc47c531555c469d2577fa74a93123d124440f2ec44"
+  },
+  "methods": {
+    "auditcoder": {
+      "unit_id": "A_leaf___module__",
+      "unit_kind": "TaskPlanIR leaf / ownership-map owner",
+      "responsibility_map": {
+        "__module__": "A_leaf___module__"
+      },
+      "injection_anchor": "leaf implementation entry",
+      "repair_flow": "Trace -> Resource -> Local -> SelectScope -> bounded regeneration",
+      "fault_type": "runtime_exception",
+      "native_result": {
+        "record_available": true,
+        "status": "ok",
+        "is_solved": null,
+        "pipeline_all_passed": false,
+        "trace": null,
+        "catg": {
+          "schema_version": "catg-1.0",
+          "node_count": 3,
+          "code_owner_count": 3,
+          "registered_unit_count": 4,
+          "development_check_count": 12,
+          "responsibility_record_count": 3,
+          "evidence_record_count": 3,
+          "validation_errors": []
+        },
+        "responsibility_record_ids": [
+          "S0",
+          "S1",
+          "S1_1"
+        ]
+      },
+      "fault_id": "APPS_CONTROLLED_RUNTIME_EXCEPTION_1474",
+      "faulty_source": "cases/case_089_apps_1474/methods/auditcoder.py",
+      "clean_source": "cases/case_089_apps_1474/clean.py",
+      "clean_sha256": "6b3191dcaee38904a759fb445e253f170e2d051de2bc7d7ddb3f9ae2329168b8",
+      "faulty_sha256": "91410da3ae8c4d900c872cc47c531555c469d2577fa74a93123d124440f2ec44",
+      "same_semantics_as_other_methods": true
+    },
+    "codesim": {
+      "unit_id": "CS_step___module__",
+      "unit_kind": "CodeSIM plan/simulation step",
+      "responsibility_map": {
+        "__module__": "CS_step___module__"
+      },
+      "injection_anchor": "plan step executed by final code/debug loop",
+      "repair_flow": "plan/simulation -> code generation -> bounded debug retry",
+      "fault_type": "runtime_exception",
+      "native_result": {
+        "record_available": true,
+        "status": "completed",
+        "is_solved": true,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_RUNTIME_EXCEPTION_1474",
+      "faulty_source": "cases/case_089_apps_1474/methods/codesim.py",
+      "clean_source": "cases/case_089_apps_1474/clean.py",
+      "clean_sha256": "6b3191dcaee38904a759fb445e253f170e2d051de2bc7d7ddb3f9ae2329168b8",
+      "faulty_sha256": "91410da3ae8c4d900c872cc47c531555c469d2577fa74a93123d124440f2ec44",
+      "same_semantics_as_other_methods": true
+    },
+    "mapcoder": {
+      "unit_id": "MC_map___module__",
+      "unit_kind": "MapCoder recalled-example/planning mapped unit",
+      "responsibility_map": {
+        "__module__": "MC_map___module__"
+      },
+      "injection_anchor": "mapped algorithm implementation unit",
+      "repair_flow": "mapping/planning -> code generation -> bounded improve retry",
+      "fault_type": "runtime_exception",
+      "native_result": {
+        "record_available": true,
+        "status": "completed",
+        "is_solved": true,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_RUNTIME_EXCEPTION_1474",
+      "faulty_source": "cases/case_089_apps_1474/methods/mapcoder.py",
+      "clean_source": "cases/case_089_apps_1474/clean.py",
+      "clean_sha256": "6b3191dcaee38904a759fb445e253f170e2d051de2bc7d7ddb3f9ae2329168b8",
+      "faulty_sha256": "91410da3ae8c4d900c872cc47c531555c469d2577fa74a93123d124440f2ec44",
+      "same_semantics_as_other_methods": true
+    },
+    "agentcoder": {
+      "unit_id": "AC_candidate___module__",
+      "unit_kind": "AgentCoder programmer candidate unit",
+      "responsibility_map": {
+        "__module__": "AC_candidate___module__"
+      },
+      "injection_anchor": "programmer candidate selected by executor feedback",
+      "repair_flow": "test designer -> programmer candidates -> executor feedback -> bounded repair",
+      "fault_type": "runtime_exception",
+      "native_result": {
+        "record_available": false,
+        "status": null,
+        "is_solved": null,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_RUNTIME_EXCEPTION_1474",
+      "faulty_source": "cases/case_089_apps_1474/methods/agentcoder.py",
+      "clean_source": "cases/case_089_apps_1474/clean.py",
+      "clean_sha256": "6b3191dcaee38904a759fb445e253f170e2d051de2bc7d7ddb3f9ae2329168b8",
+      "faulty_sha256": "91410da3ae8c4d900c872cc47c531555c469d2577fa74a93123d124440f2ec44",
+      "same_semantics_as_other_methods": true
+    }
+  },
+  "question_copy": "cases/case_089_apps_1474/question.txt"
+}

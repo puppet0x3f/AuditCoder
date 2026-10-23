@@ -1,0 +1,159 @@
+{
+  "case_id": "case_064_apps_1922",
+  "position": 64,
+  "problem_id": 1922,
+  "difficulty": "interview",
+  "url": "https://atcoder.jp/contests/arc091/tasks/arc091_a",
+  "question_file": "APPS/test/1922/question.txt",
+  "test_count": 10,
+  "reference_solution_index": 0,
+  "reference_source": "APPS/test/solutions.json",
+  "reference_provenance": {
+    "kind": "reference"
+  },
+  "reference_validation": {
+    "syntax_ok": true,
+    "all_passed": true,
+    "cases_run": 10,
+    "passed_count": 10,
+    "max_case_time_ms": 31.418033002410084,
+    "first_failure": null
+  },
+  "entry_anchor": {
+    "kind": "module",
+    "name": "__module__",
+    "line": 1,
+    "end_line": 1,
+    "selected_by": "module_fallback"
+  },
+  "mutation_validation": {
+    "syntax_ok": true,
+    "activation": {
+      "checked": false,
+      "expected_symptom": "TLE",
+      "syntax_ok": true
+    },
+    "expected_symptom": "TLE"
+  },
+  "common_fault": {
+    "id": "resource_timeout",
+    "description": "insert an unbounded loop at the owned entry unit",
+    "symptom": "TLE",
+    "mutation": "insert_infinite_loop",
+    "same_semantics_across_methods": true,
+    "marker": "APPS_CONTROLLED_RESOURCE_TIMEOUT_1922",
+    "clean_sha256": "2bbc7e040f9d8d79b1fac985e9007880d78e77536895a5865c03c18cc893cb39",
+    "faulty_sha256": "f3513a48f99eccfa22882dbdcd4e9c97234bf2abe7b070d00a421aeaff1ba59b"
+  },
+  "methods": {
+    "auditcoder": {
+      "unit_id": "A_leaf___module__",
+      "unit_kind": "TaskPlanIR leaf / ownership-map owner",
+      "responsibility_map": {
+        "__module__": "A_leaf___module__"
+      },
+      "injection_anchor": "leaf implementation entry",
+      "repair_flow": "Trace -> Resource -> Local -> SelectScope -> bounded regeneration",
+      "fault_type": "resource_timeout",
+      "native_result": {
+        "record_available": true,
+        "status": "ok",
+        "is_solved": null,
+        "pipeline_all_passed": true,
+        "trace": null,
+        "catg": {
+          "schema_version": "catg-1.0",
+          "node_count": 4,
+          "code_owner_count": 4,
+          "registered_unit_count": 7,
+          "development_check_count": 9,
+          "responsibility_record_count": 4,
+          "evidence_record_count": 4,
+          "validation_errors": []
+        },
+        "responsibility_record_ids": [
+          "S0",
+          "S1",
+          "S1_1",
+          "S1_2"
+        ]
+      },
+      "fault_id": "APPS_CONTROLLED_RESOURCE_TIMEOUT_1922",
+      "faulty_source": "cases/case_064_apps_1922/methods/auditcoder.py",
+      "clean_source": "cases/case_064_apps_1922/clean.py",
+      "clean_sha256": "2bbc7e040f9d8d79b1fac985e9007880d78e77536895a5865c03c18cc893cb39",
+      "faulty_sha256": "f3513a48f99eccfa22882dbdcd4e9c97234bf2abe7b070d00a421aeaff1ba59b",
+      "same_semantics_as_other_methods": true
+    },
+    "codesim": {
+      "unit_id": "CS_step___module__",
+      "unit_kind": "CodeSIM plan/simulation step",
+      "responsibility_map": {
+        "__module__": "CS_step___module__"
+      },
+      "injection_anchor": "plan step executed by final code/debug loop",
+      "repair_flow": "plan/simulation -> code generation -> bounded debug retry",
+      "fault_type": "resource_timeout",
+      "native_result": {
+        "record_available": true,
+        "status": "completed",
+        "is_solved": true,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_RESOURCE_TIMEOUT_1922",
+      "faulty_source": "cases/case_064_apps_1922/methods/codesim.py",
+      "clean_source": "cases/case_064_apps_1922/clean.py",
+      "clean_sha256": "2bbc7e040f9d8d79b1fac985e9007880d78e77536895a5865c03c18cc893cb39",
+      "faulty_sha256": "f3513a48f99eccfa22882dbdcd4e9c97234bf2abe7b070d00a421aeaff1ba59b",
+      "same_semantics_as_other_methods": true
+    },
+    "mapcoder": {
+      "unit_id": "MC_map___module__",
+      "unit_kind": "MapCoder recalled-example/planning mapped unit",
+      "responsibility_map": {
+        "__module__": "MC_map___module__"
+      },
+      "injection_anchor": "mapped algorithm implementation unit",
+      "repair_flow": "mapping/planning -> code generation -> bounded improve retry",
+      "fault_type": "resource_timeout",
+      "native_result": {
+        "record_available": true,
+        "status": "completed",
+        "is_solved": true,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_RESOURCE_TIMEOUT_1922",
+      "faulty_source": "cases/case_064_apps_1922/methods/mapcoder.py",
+      "clean_source": "cases/case_064_apps_1922/clean.py",
+      "clean_sha256": "2bbc7e040f9d8d79b1fac985e9007880d78e77536895a5865c03c18cc893cb39",
+      "faulty_sha256": "f3513a48f99eccfa22882dbdcd4e9c97234bf2abe7b070d00a421aeaff1ba59b",
+      "same_semantics_as_other_methods": true
+    },
+    "agentcoder": {
+      "unit_id": "AC_candidate___module__",
+      "unit_kind": "AgentCoder programmer candidate unit",
+      "responsibility_map": {
+        "__module__": "AC_candidate___module__"
+      },
+      "injection_anchor": "programmer candidate selected by executor feedback",
+      "repair_flow": "test designer -> programmer candidates -> executor feedback -> bounded repair",
+      "fault_type": "resource_timeout",
+      "native_result": {
+        "record_available": false,
+        "status": null,
+        "is_solved": null,
+        "pipeline_all_passed": null,
+        "trace": null
+      },
+      "fault_id": "APPS_CONTROLLED_RESOURCE_TIMEOUT_1922",
+      "faulty_source": "cases/case_064_apps_1922/methods/agentcoder.py",
+      "clean_source": "cases/case_064_apps_1922/clean.py",
+      "clean_sha256": "2bbc7e040f9d8d79b1fac985e9007880d78e77536895a5865c03c18cc893cb39",
+      "faulty_sha256": "f3513a48f99eccfa22882dbdcd4e9c97234bf2abe7b070d00a421aeaff1ba59b",
+      "same_semantics_as_other_methods": true
+    }
+  },
+  "question_copy": "cases/case_064_apps_1922/question.txt"
+}

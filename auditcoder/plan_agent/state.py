@@ -25,6 +25,8 @@ class PlanState(TypedDict, total=False):
     test_cases: dict[str, Any]
     execution_contract: dict[str, Any]
     task_plan_ir: dict[str, Any]
+    contract_graph: dict[str, Any]
+    catg_validation_errors: list[str]
     review_result: ReviewResult
     revision_count: int
     messages: Annotated[list, add_messages]

@@ -1,0 +1,31 @@
+{
+  "case_id": "case_023_apps_1888",
+  "problem_id": 1888,
+  "method": "codesim",
+  "common_fault": {
+    "id": "interface_contract",
+    "description": "violate the unit input/output contract with a TypeError",
+    "symptom": "contract_error",
+    "mutation": "insert_contract_exception"
+  },
+  "method_unit": {
+    "unit_id": "CS_step___module__",
+    "unit_kind": "CodeSIM plan/simulation step",
+    "responsibility_map": {
+      "__module__": "CS_step___module__"
+    },
+    "injection_anchor": "plan step executed by final code/debug loop",
+    "repair_flow": "plan/simulation -> code generation -> bounded debug retry",
+    "fault_type": "interface_contract"
+  },
+  "native_result": {
+    "record_available": true,
+    "status": "completed",
+    "is_solved": true,
+    "pipeline_all_passed": null,
+    "trace": null
+  },
+  "clean_sha256": "8fe625d1add778a63a7e37ac57304f8b38a4a701039a979cd30698e5b2eea5f9",
+  "faulty_sha256": "bef803be6a826453da8a5365900a65dbbfc3fb7004522e94da093985a79574f7",
+  "faulty_source": "cases/case_023_apps_1888/methods/codesim.py"
+}

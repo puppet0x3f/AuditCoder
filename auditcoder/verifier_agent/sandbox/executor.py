@@ -40,13 +40,23 @@ def _ensure_text(value: str | bytes | None) -> str:
 
 
 def _build_wrapper(code_path: str, memory_limit_mb: int) -> str:
-    """Build a Python wrapper script that sets resource limits then execs the target."""
-    lines = [
-        "import resource, sys, os",
-        f"mem_bytes = {memory_limit_mb} * 1024 * 1024",
-    ]
-    if not _IS_DARWIN:
-        lines.append("resource.setrlimit(resource.RLIMIT_AS, (mem_bytes, mem_bytes))")
+    """Build a wrapper that applies available limits before executing the target.
+
+    ``resource`` is POSIX-only.  The host backend is also used on Windows for
+    local development and controlled experiments, so importing it
+    unconditionally makes every generated program fail before it starts.
+    Windows still keeps the subprocess timeout enforced by ``subprocess.run``;
+    the address-space limit is simply unavailable there.
+    """
+    if os.name == "nt":
+        lines = ["import sys, os"]
+    else:
+        lines = [
+            "import resource, sys, os",
+            f"mem_bytes = {memory_limit_mb} * 1024 * 1024",
+        ]
+        if not _IS_DARWIN:
+            lines.append("resource.setrlimit(resource.RLIMIT_AS, (mem_bytes, mem_bytes))")
     lines += [
         f'exec(open({code_path!r}, encoding="utf-8").read())',
     ]

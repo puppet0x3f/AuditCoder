@@ -104,6 +104,36 @@ def verdict_assembler(state: VerifierState) -> dict:
     else:
         summary = "; ".join(reasons)
 
+    # Normalize the verifier outcome into a paper-shaped evidence record.  The
+    # final locator still recomputes compatibility; these fields only state
+    # what was actually checked and prevent a free-form summary from becoming
+    # an implicit owner claim.
+    if not contract_ok:
+        obligation = {
+            "class": "interface",
+            "name": "contract_signature",
+            "description": contract_report.get("violations", []),
+        }
+    elif not resource_ok or not static_ok or not dynamic_ok:
+        obligation = {"class": "resource", "name": "complexity_or_resource_budget"}
+    else:
+        obligation = {"class": "semantic", "name": "sample_or_differential_behavior"}
+    failed_samples = [
+        item for item in sample_report.get("results", [])
+        if isinstance(item, dict) and not item.get("passed", False)
+    ]
+    witness = {}
+    if failed_samples:
+        witness = dict(failed_samples[0])
+        witness["applicability"] = "observed"
+    elif isinstance(ce, dict):
+        witness = {
+            "input": ce.get("minimal_input", ""),
+            "expected": ce.get("expected_output", ""),
+            "actual": ce.get("actual_output", ""),
+            "applicability": "asserted",
+        }
+
     return {
         "verification_report": {
             "task_id": task_id,
@@ -113,5 +143,11 @@ def verdict_assembler(state: VerifierState) -> dict:
             "weak_signals": weak,
             "counterexample": ce,
             "summary": summary,
+            "obligation": obligation,
+            "witness": witness,
+            # Contract/compile/sample checks are executable evidence.  A
+            # counterexample proposed without a runtime witness remains a
+            # judged record and is graded Low by Locate.
+            "evidence_kind": "exec" if failed_samples or not syntax_ok else "judged",
         }
     }

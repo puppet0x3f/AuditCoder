@@ -1,35 +1,41 @@
-.DS_Store
+# Local credentials and configuration
 .env
+.env.*
+!.env.example
+cookies.json
+*.pem
+*.key
+
+# Environments and caches
 .venv/
-.vscode/
+venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.DS_Store
+.idea/
+.vscode/
 
-data/
-result/
-results/
-output*/
-tmp/
+# Private run outputs and optional full datasets
+/results/
+/result/
+/data/APPS/
+*.log
+.coverage*
+htmlcov/
 
-experiments/**/runs/
-experiments/**/reports/
-experiments/**/repairs/
-experiments/**/tasks/
-experiments/**/candidates/
-experiments/**/pools/
-experiments/**/dataset_manifest.json
-experiments/**/UPSTREAM_SHA256SUMS
-experiments/**/source_registry.json
-experiments/**/LICENSE-UPSTREAM
-experiments/**/private/*.h5
-
-*.csv
-*.tsv
-*.xlsx
-*.xls
-*.db
-*.sqlite*
-*.zip
-*.tar
-*.tar.gz
+# Files created by benchmark-generated programs
+/test*.csv
+/read_test*.csv
+/test*.db
+/test*.xlsx
+/test.txt
+/cookies*.json
+/example.zip
+/new_zip_file.zip
+/output_directory/
