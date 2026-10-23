@@ -188,18 +188,6 @@ CodeSim/MapCoder strategies. The controlled experiment starts from identical
 mutants and uses method-specific repair prompts and budgets; it does not rerun
 those complete generation strategies.
 
-The current AuditCoder APPS runner supplies selected dataset cases to the final
-verifier as trusted checks and retains statement-specific templates in
-`auditcoder/common/canonical_solutions.py`. These are part of this snapshot's
-behavior. The testing guide describes the oracle access and the three
-test-set-bounded reference fallbacks in the repair corpus, so results can be
-interpreted with the correct protocol.
-
-Historical model outputs and run logs are excluded. The results summarized
-above are reported in the paper, rather than new measurements of this snapshot.
-Offline checks validate the shipped code and data; full model experiments must
-be rerun with your configured endpoint using the documented protocols.
-
 ## Anonymous publication and attribution
 
 See [anonymous publication instructions](docs/ANONYMITY.md). This folder has no
